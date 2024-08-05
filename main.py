@@ -55,10 +55,10 @@ if __name__ == "__main__":
 
 
     realSense = RealSense(framerate=60)
-    # handMarker = HandLandMark(model_path="medel/hand_landmarker.task")
-    # poseMarker = PoseLandMarkDetector(model_path="medel/pose_landmarker_lite.task")
-    poseMarker = PoseLandMarkDetector(model_path="medel/pose_landmarker_heavy.task")
-    gestureMarker = GestureLandMarkDetector(model_path="medel/gesture_recognizer.task")
+    # handMarker = HandLandMark(model_path="model/hand_landmarker.task")
+    # poseMarker = PoseLandMarkDetector(model_path="model/pose_landmarker_lite.task")
+    poseMarker = PoseLandMarkDetector(model_path="model/pose_landmarker_heavy.task")
+    gestureMarker = GestureLandMarkDetector(model_path="model/gesture_recognizer.task")
 
     gestureObs = GestureObserver()
     gestureObs.register_callback(GestureObserver.FuncNameLists.INCREASE, lambda:print("inc"), duration=2, volatuationData=0.04)
