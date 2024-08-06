@@ -1,25 +1,25 @@
+#!/usr/bin/env python3
+# coding=utf-8
+'''
+Author       : jay jay.zhangjunjie@outlook.com
+Date         : 2024-08-01 13:44:28
+LastEditTime : 2024-08-05 16:29:39
+LastEditors  : jay jay.zhangjunjie@outlook.com
+Description  : 通过realsense和mediapipe,摇操作控制机器人,并结合触觉传感器实现自适应抓取
+'''
 
 
 
 
 
 
-
-
-
-
-
-
-
-
-
-
-
+from multiprocessing import Process
 from threading import Thread
 import time
 import cv2
 import numpy as np
 
+from utils.finger_angle import FingerAnglesHandle, handWorldLandmarks2List, drawFingerAngleOnImage
 from utils.fps import FPS
 from utils.realsense import RealSense
 from utils.landmark import GestureLandMarkDetector, HandLandMarkDetector ,PoseLandMarkDetector
@@ -45,9 +45,15 @@ class BodyObserver:
 # class Trigger 
 
 
-
-
-
+def showHandAngle(gestureDector:GestureLandMarkDetector, handle:FingerAnglesHandle):
+    while 1:
+        time.sleep(0.001)
+        tt = time.time()
+        if gestureDector.result is not None:
+            handle.updata(handWorldLandmarks2List(gestureDector.result.hand_world_landmarks.toList()))
+            # drawFingerAngleOnImage(gestureMarker.output_image, fAHandle.drawFingerAngleDatas)
+            handle.drawAllFingerAngleOnImage(gestureDector.output_image, gestureDector.result.hand_landmarks.getAllJointPoint())
+            print(f"Draw:{time.time() - tt}")
 
 
 
@@ -57,7 +63,7 @@ if __name__ == "__main__":
     realSense = RealSense(framerate=60)
     # handMarker = HandLandMark(model_path="model/hand_landmarker.task")
     # poseMarker = PoseLandMarkDetector(model_path="model/pose_landmarker_lite.task")
-    poseMarker = PoseLandMarkDetector(model_path="model/pose_landmarker_heavy.task")
+    # poseMarker = PoseLandMarkDetector(model_path="model/pose_landmarker_heavy.task")
     gestureMarker = GestureLandMarkDetector(model_path="model/gesture_recognizer.task")
 
     gestureObs = GestureObserver()
@@ -67,13 +73,18 @@ if __name__ == "__main__":
 
     bodyObs = BodyObserver()
 
+    fAHandle = FingerAnglesHandle()
+
 
     # gestureMarker.add_observer(gestureOsb)
-    gestureObsThread = Thread(target=gestureObs.updata, args=(gestureMarker,), daemon=True, name="")
+    gestureObsThread = Thread(target=gestureObs.updata, args=(gestureMarker,), daemon=True, name="gestureObsThread")
     gestureObsThread.start()
 
-    bodyObsThread = Thread(target=bodyObs.updata, args=(gestureMarker,), daemon=True, name="")
+    bodyObsThread = Thread(target=bodyObs.updata, args=(gestureMarker,), daemon=True, name="bodyObsThread")
     bodyObsThread.start()
+
+    # showHandAngleThread = Process(target=showHandAngle, args=(gestureMarker, fAHandle,), daemon=True, name="showHandAngleThread")
+    # showHandAngleThread.start()
 
     fps = FPS()
     timestamp = int(time.time() * 1000)
@@ -84,7 +95,7 @@ if __name__ == "__main__":
 
             # print(time.time()* 1000)
             # handMarker.detect_async(color_image, timestamp)
-            poseMarker.detect_async(color_image, timestamp)
+            # poseMarker.detect_async(color_image, timestamp)
             gestureMarker.detect_async(color_image, timestamp)
 
             # Apply colormap on depth image (image must be converted to 8-bit per pixel first)
@@ -105,10 +116,14 @@ if __name__ == "__main__":
 
             # if handMarker.output_image is not None:
             #     cv2.imshow("hand", handMarker.output_image)
-            if poseMarker.output_image is not None:
-                cv2.imshow("pose", poseMarker.output_image)
-                pass
+            # if poseMarker.output_image is not None:
+            #     cv2.imshow("pose", poseMarker.output_image)
+            #     pass
             if gestureMarker.output_image is not None:
+                fAHandle.updata(handWorldLandmarks2List(gestureMarker.result.hand_world_landmarks.toList()))
+                # # drawFingerAngleOnImage(gestureMarker.output_image, fAHandle.drawFingerAngleDatas)
+                fAHandle.drawAllFingerAngleOnImage(gestureMarker.output_image, gestureMarker.result.hand_landmarks.getAllJointPoint())
+                cv2.putText(gestureMarker.output_image, f"Dis:{round(gestureMarker.get_thumb_indexfinger_tip_dis(),3)}m", (10,60), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,0,0), 1, cv2.LINE_AA)
                 cv2.imshow("gesture", gestureMarker.output_image)
                 pass
 
