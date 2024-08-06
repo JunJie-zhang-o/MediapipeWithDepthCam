@@ -83,7 +83,7 @@ class GestureObserver(Observer):
     def updata(self, obj:GestureLandMarkDetector):
 
         while 1:
-            time.sleep(0.0)
+            time.sleep(0.001)
             now = time.time()
             if type(obj.result) is not GestureRecognizerResultData:
                 continue
