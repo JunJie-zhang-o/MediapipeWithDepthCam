@@ -38,7 +38,9 @@ class Monitor(Thread):
 
 
 class GestureObserver(Observer):
-
+    """
+        手势特征观察者
+    """
     class FuncNameLists(Enum):
         UNKONWN = "UnKonwn"
         OPEN = "Open_Palm"
