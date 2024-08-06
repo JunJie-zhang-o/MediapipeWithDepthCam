@@ -6,7 +6,7 @@ import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 import pyrealsense2 as rs
-from utils.fps import FPS
+# from utils.fps import FPS
 
 
 class RealSense:
@@ -32,7 +32,9 @@ class RealSense:
             pass
 
         
-        self.depth_scale = None
+        self.depth_scale = None     # 深度比例
+        self.intrinsics = None      # 相机内参
+        self.align_mode = None      # 对齐方式
 
 
     def start_pipeline(self):
@@ -63,7 +65,41 @@ class RealSense:
             return ret_depth_array, ret_color_array
         else:
             return depth_frame, color_frame
+        
 
+    def get_align_frame(self, is_get_depth_frame=True, is_get_color_frame=True, is_convert_np_array=True):
+        if self.align_mode:
+            frames = self.pipeline.wait_for_frames()
+            aligned_frames = self.align_mode.process(frames)
+        else:
+            raise Exception("Must Set Align Mode | May Be rs.stream.color or rs.stream.depth")
+        depth_frame, color_frame = None, None
+        if is_get_color_frame:
+            color_frame = aligned_frames.get_color_frame()
+        if is_get_depth_frame:
+            depth_frame = aligned_frames.get_depth_frame()
+        if is_convert_np_array:
+            ret_depth_array, ret_color_array = None, None
+            if depth_frame is not None:
+                ret_depth_array = np.asanyarray(depth_frame.get_data())
+            if color_frame is not None:
+                ret_color_array = np.asanyarray(color_frame.get_data())
+            return ret_depth_array, ret_color_array
+        else:
+            return depth_frame, color_frame
+    
+
+    def set_align_mode(self, align_mode=rs.stream.color):
+        self.align_mode = rs.align(align_mode)
+
+
+    def get_depth_value(self, x, y, depth_frame):
+        return depth_frame[y,x] * self.depth_scale
+
+
+    def get_coordinate_from():
+        # 根据图像上的x,y以及实际的深度信息,结合相机内参 计算出真实的物理值
+        pass
 
     def _find_devices(self):
         print("Searching Devices..")
@@ -95,10 +131,10 @@ if __name__ == "__main__":
     realSense = RealSense()
     # realSense.cfg.enable_stream(rs.stream.depth, 640, 480, rs.format.z16, 90)
     # realSense.cfg.enable_stream(rs.stream.color, 640, 480, rs.format.bgr8, 90)
-    fps = FPS()
+    # fps = FPS()
     try:
         while True:
-            fps.refresh()
+            # fps.refresh()
             depth_frame, color_frame = realSense.get_frame()
             # Convert images to numpy arrays
             depth_image = np.asanyarray(depth_frame.get_data())
@@ -120,7 +156,7 @@ if __name__ == "__main__":
             # Show images
             cv2.namedWindow('RealSense', cv2.WINDOW_AUTOSIZE)
             cv2.imshow('RealSense', images)
-            print(fps.fps)
+            # print(fps.fps)
             key = cv2.waitKey(1)
             # Press esc or 'q' to close the image window
             if key & 0xFF == ord('q') or key == 27:
