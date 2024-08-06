@@ -16,6 +16,10 @@ from mediapipe import solutions
 from mediapipe.framework.formats import landmark_pb2
 import numpy as np
 
+
+from utils.fingerangle import FingerAnglesHandle, handWorldLandmarks2List
+
+
 class FPS:
 
     def __init__(self) -> None:
@@ -51,7 +55,7 @@ class FPS:
         cv2.putText(img, text, org, font, fontScale, color, thickness, cv2.LINE_AA)
 
 
-cap  = cv2.VideoCapture(0)
+cap  = cv2.VideoCapture(1)
 time.sleep(1)
 import mediapipe as mp
 from mediapipe.tasks import python
@@ -108,25 +112,26 @@ def draw_landmarks_on_image(rgb_image, detection_result):
 global result
 gresult = None
 fps2 = FPS()
+fAHandle = FingerAnglesHandle()
 def print_result(result: HandLandmarkerResult, output_image: mp.Image, timestamp_ms: int):
     # print('hand landmarker result: {}'.format(result))
     fps2.refresh()
-    print(fps2.fps)
+    # print(fps2.fps)
     global gresult
     gresult = result
     if len(result.hand_world_landmarks) > 0:
         # print(result.handedness)
         thumb_tip = result.hand_world_landmarks[0][4]
         middle_finger_tip = result.hand_world_landmarks[0][8]
-        print(thumb_tip)
-        print(middle_finger_tip)
+        # print(thumb_tip)
+        # print(middle_finger_tip)
         tx, ty, tz = thumb_tip.x, thumb_tip.y, thumb_tip.z
         mx, my, mz = middle_finger_tip.x, middle_finger_tip.y, middle_finger_tip.z
         dis = math.sqrt((tx - mx)**2+(ty-my)**2+(tz-mz)**2)
-        print(dis)
+        # print(dis)
 
 
-    # annotated_image = draw_landmarks_on_image(output_image, result)
+    # annotated_image = draw_landmarks_on_image(output_image.numpy_view(), result)
     # showImage = cv2.cvtColor(annotated_image, cv2.COLOR_RGB2BGR)
     # cv2.imshow("annotated_image", showImage)
 
@@ -154,12 +159,18 @@ while 1:
     mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=frame)
     # STEP 4: Detect hand landmarks from the input image.
     # detection_result = detector.detect(mp_image)
-    detector.detect_async(mp_image, int(frame_timestamp_ms))
+    result = detector.detect_async(mp_image, int(frame_timestamp_ms))
 
-    
+
     showImage = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
-
-
+    if gresult is not None and  len(gresult.hand_world_landmarks) > 0:
+        handLists = handWorldLandmarks2List(gresult.hand_world_landmarks[0])
+        print(fAHandle.updata(handLists))
+        annImage = draw_landmarks_on_image(frame, gresult)
+        # print()
+        annImage = cv2.cvtColor(annImage, cv2.COLOR_RGB2BGR)
+        cv2.imshow("annImage", annImage)
+    
     FPS.putFPSToImage(showImage, fps.fps)
     cv2.imshow("img", showImage)
     

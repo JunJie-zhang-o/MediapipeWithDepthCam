@@ -3,8 +3,8 @@
 '''
 Author       : jay jay.zhangjunjie@outlook.com
 Date         : 2024-08-01 13:44:28
-LastEditTime : 2024-08-05 16:29:39
-LastEditors  : jay jay.zhangjunjie@outlook.com
+LastEditTime: 2024-08-05 23:58:13
+LastEditors: jay jay.zhangjunjie@outlook.com
 Description  : 通过realsense和mediapipe,摇操作控制机器人,并结合触觉传感器实现自适应抓取
 '''
 
@@ -13,7 +13,6 @@ Description  : 通过realsense和mediapipe,摇操作控制机器人,并结合触
 
 
 
-from multiprocessing import Process
 from threading import Thread
 import time
 import cv2
@@ -24,19 +23,20 @@ from utils.fps import FPS
 from utils.realsense import RealSense
 from utils.landmark import GestureLandMarkDetector, HandLandMarkDetector ,PoseLandMarkDetector
 from utils.observer import GestureObserver
+from utils.image_list import ImageList
+from utils.body_handle import BodyObserver
+
+# class BodyObserver:
 
 
-class BodyObserver:
-
-
-    def __init__(self, ) -> None:
-        pass
+#     def __init__(self, ) -> None:
+#         pass
 
     
 
-    def updata(self, obj:PoseLandMarkDetector):
-        if obj.result is not None:
-            print(obj.result.pose_world_landmarks.right_wrist)
+#     def updata(self, obj:PoseLandMarkDetector):
+#         if obj.result is not None:
+#             print(obj.result.pose_world_landmarks.right_wrist)
 
 
 
@@ -61,8 +61,12 @@ if __name__ == "__main__":
 
 
     realSense = RealSense(framerate=60)
+    realSense.set_align_mode()
     # handMarker = HandLandMark(model_path="model/hand_landmarker.task")
-    # poseMarker = PoseLandMarkDetector(model_path="model/pose_landmarker_lite.task")
+    poseMarker = PoseLandMarkDetector(model_path="model/pose_landmarker_lite.task",
+                                      min_pose_detection_confidence=0.8,
+                                      min_pose_presence_confidence=0.8,
+                                      min_tracking_confidence=0.8)
     # poseMarker = PoseLandMarkDetector(model_path="model/pose_landmarker_heavy.task")
     gestureMarker = GestureLandMarkDetector(model_path="model/gesture_recognizer.task")
 
@@ -70,18 +74,22 @@ if __name__ == "__main__":
     gestureObs.register_callback(GestureObserver.FuncNameLists.INCREASE, lambda:print("inc"), duration=2, volatuationData=0.04)
     gestureObs.register_callback(GestureObserver.FuncNameLists.REDUCE, lambda:print("dec"), duration=2, volatuationData=0.04)
 
+    imageDeque = ImageList()
 
-    bodyObs = BodyObserver()
+    bodyObs = BodyObserver(imageDeque, realSense)
 
     fAHandle = FingerAnglesHandle()
 
 
+
     # gestureMarker.add_observer(gestureOsb)
+    poseMarker.add_observer(bodyObs)
+    # *以线程方式运行观察者
     gestureObsThread = Thread(target=gestureObs.updata, args=(gestureMarker,), daemon=True, name="gestureObsThread")
     gestureObsThread.start()
 
-    bodyObsThread = Thread(target=bodyObs.updata, args=(gestureMarker,), daemon=True, name="bodyObsThread")
-    bodyObsThread.start()
+    # bodyObsThread = Thread(target=bodyObs.updata, args=(poseMarker,), daemon=True, name="bodyObsThread")
+    # bodyObsThread.start()
 
     # showHandAngleThread = Process(target=showHandAngle, args=(gestureMarker, fAHandle,), daemon=True, name="showHandAngleThread")
     # showHandAngleThread.start()
@@ -91,12 +99,19 @@ if __name__ == "__main__":
     try:
         while True:
             fps.refresh()
-            depth_image, color_image = realSense.get_frame()
+            # *获取数据帧
+            # depth_image, color_image = realSense.get_frame()
+            # *获取对齐数据帧
+            depth_image, color_image = realSense.get_align_frame()
+            # z = realSense.get_depth_value(315, 191, depth_image)
+            # point =  realSense.get_actual_pose(315, 191, z)
+            # print(point)
 
             # print(time.time()* 1000)
             # handMarker.detect_async(color_image, timestamp)
-            # poseMarker.detect_async(color_image, timestamp)
-            gestureMarker.detect_async(color_image, timestamp)
+            # imageDeque.set_image_data(color_image, depth_image, timestamp)
+            poseMarker.detect_async(color_image, depth_image, timestamp)
+            gestureMarker.detect_async(color_image, depth_image, timestamp)
 
             # Apply colormap on depth image (image must be converted to 8-bit per pixel first)
             depth_colormap = cv2.applyColorMap(cv2.convertScaleAbs(depth_image, alpha=0.03), cv2.COLORMAP_JET)
@@ -116,14 +131,14 @@ if __name__ == "__main__":
 
             # if handMarker.output_image is not None:
             #     cv2.imshow("hand", handMarker.output_image)
-            # if poseMarker.output_image is not None:
-            #     cv2.imshow("pose", poseMarker.output_image)
+            if poseMarker.output_image is not None:
+                cv2.imshow("pose", poseMarker.output_image)
             #     pass
             if gestureMarker.output_image is not None:
-                fAHandle.updata(handWorldLandmarks2List(gestureMarker.result.hand_world_landmarks.toList()))
+                # fAHandle.updata(handWorldLandmarks2List(gestureMarker.result.hand_world_landmarks.toList()))
                 # # drawFingerAngleOnImage(gestureMarker.output_image, fAHandle.drawFingerAngleDatas)
-                fAHandle.drawAllFingerAngleOnImage(gestureMarker.output_image, gestureMarker.result.hand_landmarks.getAllJointPoint())
-                cv2.putText(gestureMarker.output_image, f"Dis:{round(gestureMarker.get_thumb_indexfinger_tip_dis(),3)}m", (10,60), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,0,0), 1, cv2.LINE_AA)
+                # fAHandle.drawAllFingerAngleOnImage(gestureMarker.output_image, gestureMarker.result.hand_landmarks.getAllJointPoint())
+                # cv2.putText(gestureMarker.output_image, f"Dis:{round(gestureMarker.get_thumb_indexfinger_tip_dis(),3)}m", (10,60), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,0,0), 1, cv2.LINE_AA)
                 cv2.imshow("gesture", gestureMarker.output_image)
                 pass
 
@@ -139,6 +154,6 @@ if __name__ == "__main__":
             timestamp += 1
 
     finally:
-
+        poseMarker.landmarker.close()
         # Stop streaming
         realSense.pipeline.stop()
