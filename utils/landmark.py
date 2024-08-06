@@ -1,6 +1,6 @@
 
 
-from dataclasses import dataclass
+from dataclasses import dataclass , asdict
 import math
 import time
 import mediapipe as mp
@@ -108,6 +108,10 @@ class LandMarkData:
     visibility:float
     presence:float
 
+
+    def getPose(self):
+        return [self.x, self.y ,self.z]
+
 @dataclass
 class Category:
     index:int
@@ -180,6 +184,19 @@ class HandLandmarksData:
     pinky_dip:LandMarkData
     pinky_tip:LandMarkData
 
+
+    def toList(self):
+        return list(asdict(self).values())
+    
+
+    def getAllJointPoint(self):
+        return [
+            [self.thumb_cmc.getPose(), self.thumb_mcp.getPose(), self.thumb_ip.getPose()],
+            [self.index_finger_mcp.getPose(), self.index_finger_pip.getPose(), self.index_finger_dip.getPose()],
+            [self.middle_finger_mcp.getPose(), self.middle_finger_pip.getPose(), self.middle_finger_dip.getPose()],
+            [self.ring_finger_tip.getPose(), self.ring_finger_mcp.getPose(), self.ring_finger_pip.getPose()],
+            [self.pinky_mcp.getPose(), self.pinky_pip.getPose(), self.pinky_dip.getPose()]
+        ]
 
 @dataclass
 class HandWorldLandmarksData(HandLandmarksData):
@@ -296,7 +313,7 @@ class PoseLandMarkDetector(LandMarkObservable):
             self.result = PoseLandmarkerResultData(pose_landmarks=pl, pose_world_landmarks=pwls)
             x , y, z = self.result.pose_world_landmarks.right_wrist.x, self.result.pose_world_landmarks.right_wrist.y, self.result.pose_world_landmarks.right_wrist.z
             # print(self.result.pose_world_landmarks.right_wrist)
-            print(round(x,4), round(y,4), round(z,4))
+            # print(round(x,4), round(y,4), round(z,4))
             self.notify_observers()
         
 
@@ -427,7 +444,7 @@ class GestureLandMarkDetector(LandMarkObservable):
         """
             异步检测回调,当检测完成后会调用
         """
-        self.result = result
+        # self.result = result
         self._fps_handler.refresh()
         # print(f"Gesture Detect:{self._fps_handler.fps}")
         if len(result.hand_world_landmarks) > 0:
@@ -436,7 +453,7 @@ class GestureLandMarkDetector(LandMarkObservable):
             
 
             self.output_image = draw_hand_landmarks_on_image(output_image.numpy_view(), result)
-            # self.output_image = FPS.putFPSToImage(output_image, self._fps_handler.fps)
+            FPS.putFPSToImage(self.output_image, self._fps_handler.fps)
             # 创建数据
             hl = []
             for i in result.hand_landmarks[0]:
