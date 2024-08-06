@@ -1,6 +1,7 @@
 
 
 from dataclasses import dataclass , asdict
+from enum import IntEnum
 import math
 import time
 import mediapipe as mp
@@ -99,9 +100,74 @@ def draw_hand_landmarks_on_image(rgb_image, detection_result):
 
 
 ## -----------------------------------------------------------------------------
+
+class HandIndex(IntEnum)    : 
+    WRIST                   = 0
+    THUMB_CMC               = 1
+    THUMB_MCP               = 2
+    THUMB_IP                = 3
+    THUMP_TIP               = 4
+    INDEX_FINGER_MCP        = 5
+    INDEX_FINGER_PIP        = 6
+    INDEX_FINGER_DIP        = 7
+    INDEX_FINGER_TIP        = 8
+    MIDDLE_FINGER_MCP       = 9
+    MIDDLE_FINGER_PIP       = 10
+    MIDDLE_FINGER_DIP       = 11
+    MIDDLE_FINGER_TIP       = 12
+    RING_FINGER_MCP         = 13
+    RING_FINGER_PIP         = 14
+    RING_FINGER_DIP         = 15
+    RING_FINGER_TIP         = 16
+    PINKY_MCP               = 17
+    PINKY_PIP               = 18
+    PINKY_DIP               = 19
+    PINKY_TIP               = 20
+
+
+class PoseIndex(IntEnum):
+    NOSE              = 0
+    LEFT_EYE_INNER    = 1
+    LEFT_EYE          = 2
+    LEFT_EYE_OUTER    = 3
+    RIGHT_EYE_INNER   = 4
+    RIGHT_EYE         = 5
+    RIGHT_EYE_OUTER   = 6
+    LEFT_EAR          = 7
+    RIGHT_EAR         = 8
+    MOUTH_LEFT        = 9
+    MOUTH_RIGHT       = 10
+    LEFT_SHOULDER     = 11
+    RIGHT_SHOULDER    = 12
+    LEFT_ELBOW        = 13
+    RIGHT_ELBOW       = 14
+    LEFT_WRIST        = 15
+    RIGHT_WRIST       = 16
+    LEFT_PINKY        = 17
+    RIGHT_PINKY       = 18
+    LEFT_INDEX        = 19
+    RIGHT_INDEX       = 20
+    LEFT_THUMB        = 21
+    RIGHT_THUMB       = 22
+    LEFT_HIP          = 23
+    RIGHT_HIP         = 24
+    LEFT_KNEE         = 25
+    RIGHT_KNEE        = 26
+    LEFT_ANKLE        = 27
+    RIGHT_ANKLE       = 28
+    LEFT_HEEL         = 29
+    RIGHT_HEEL        = 30
+    LEFT_FOOT_INDEX   = 31
+    RIGHT_FOOT_INDEX  = 32
+
+
+## -----------------------------------------------------------------------------
 # LandMark Result 相关数据类
 @dataclass
 class LandMarkData:
+    """
+        单个特征点的数据结构
+    """
     x:float
     y:float
     z:float
@@ -121,68 +187,79 @@ class Category:
 
 @dataclass
 class PoseLandmarksData:
-    nose:LandMarkData
-    left_eye_inner:LandMarkData
-    left_eye:LandMarkData
-    left_eye_outer:LandMarkData
-    right_eye_inner:LandMarkData
-    right_eye:LandMarkData
-    right_eye_outer:LandMarkData
-    left_ear:LandMarkData
-    right_ear:LandMarkData
-    mouth_left:LandMarkData
-    mouth_right:LandMarkData
-    left_shoulder:LandMarkData
-    right_shoulder:LandMarkData
-    left_elbow:LandMarkData
-    right_elbow:LandMarkData
-    left_wrist:LandMarkData
-    right_wrist:LandMarkData
-    left_pinky:LandMarkData
-    right_pinky:LandMarkData
-    left_index:LandMarkData
-    right_index:LandMarkData
-    left_thumb:LandMarkData
-    right_thumb:LandMarkData
-    left_hip:LandMarkData
-    right_hip:LandMarkData
-    left_knee:LandMarkData
-    right_knee:LandMarkData
-    left_ankle:LandMarkData
-    right_ankle:LandMarkData
-    left_heel:LandMarkData
-    right_heel:LandMarkData
-    left_foot_index:LandMarkData
-    right_foot_index:LandMarkData
+    """
+        人体33个特征点的归一化坐标
+    """
+    nose              : LandMarkData
+    left_eye_inner    : LandMarkData
+    left_eye          : LandMarkData
+    left_eye_outer    : LandMarkData
+    right_eye_inner   : LandMarkData
+    right_eye         : LandMarkData
+    right_eye_outer   : LandMarkData
+    left_ear          : LandMarkData
+    right_ear         : LandMarkData
+    mouth_left        : LandMarkData
+    mouth_right       : LandMarkData
+    left_shoulder     : LandMarkData
+    right_shoulder    : LandMarkData
+    left_elbow        : LandMarkData
+    right_elbow       : LandMarkData
+    left_wrist        : LandMarkData
+    right_wrist       : LandMarkData
+    left_pinky        : LandMarkData
+    right_pinky       : LandMarkData
+    left_index        : LandMarkData
+    right_index       : LandMarkData
+    left_thumb        : LandMarkData
+    right_thumb       : LandMarkData
+    left_hip          : LandMarkData
+    right_hip         : LandMarkData
+    left_knee         : LandMarkData
+    right_knee        : LandMarkData
+    left_ankle        : LandMarkData
+    right_ankle       : LandMarkData
+    left_heel         : LandMarkData
+    right_heel        : LandMarkData
+    left_foot_index   : LandMarkData
+    right_foot_index  : LandMarkData
+
+    def toList(self):
+        return list(asdict(self).values())
 
 @dataclass
 class PoseWorldLandmarksData(PoseLandmarksData):
+    """
+        人体33个特征点的世界坐标
+    """
     pass
 
 @dataclass
-class HandLandmarksData:
-    wrist:LandMarkData
-    thumb_cmc:LandMarkData
-    thumb_mcp:LandMarkData
-    thumb_ip:LandMarkData
-    thump_tip:LandMarkData
-    index_finger_mcp:LandMarkData
-    index_finger_pip:LandMarkData
-    index_finger_dip:LandMarkData
-    index_finger_tip:LandMarkData
-    middle_finger_mcp:LandMarkData
-    middle_finger_pip:LandMarkData
-    middle_finger_dip:LandMarkData
-    middle_finger_tip:LandMarkData
-    ring_finger_tip:LandMarkData
-    ring_finger_mcp:LandMarkData
-    ring_finger_pip:LandMarkData
-    ring_finger_dip:LandMarkData
-    ring_finger_tip:LandMarkData
-    pinky_mcp:LandMarkData
-    pinky_pip:LandMarkData
-    pinky_dip:LandMarkData
-    pinky_tip:LandMarkData
+class HandLandmarksData   : 
+    """
+        21个手部特征点的归一化坐标
+    """
+    wrist                 : LandMarkData                        # index = 0
+    thumb_cmc             : LandMarkData                        # index = 1
+    thumb_mcp             : LandMarkData                        # index = 2
+    thumb_ip              : LandMarkData                        # index = 3
+    thump_tip             : LandMarkData                        # index = 4
+    index_finger_mcp      : LandMarkData                        # index = 5
+    index_finger_pip      : LandMarkData                        # index = 6
+    index_finger_dip      : LandMarkData                        # index = 7
+    index_finger_tip      : LandMarkData                        # index = 8
+    middle_finger_mcp     : LandMarkData                        # index = 9
+    middle_finger_pip     : LandMarkData                        # index = 10
+    middle_finger_dip     : LandMarkData                        # index = 11
+    middle_finger_tip     : LandMarkData                        # index = 12
+    ring_finger_mcp       : LandMarkData                        # index = 13
+    ring_finger_pip       : LandMarkData                        # index = 14
+    ring_finger_dip       : LandMarkData                        # index = 15
+    ring_finger_tip       : LandMarkData                        # index = 16
+    pinky_mcp             : LandMarkData                        # index = 17
+    pinky_pip             : LandMarkData                        # index = 18
+    pinky_dip             : LandMarkData                        # index = 19
+    pinky_tip             : LandMarkData                        # index = 20
 
 
     def toList(self):
@@ -200,30 +277,70 @@ class HandLandmarksData:
 
 @dataclass
 class HandWorldLandmarksData(HandLandmarksData):
+    """
+        21个手部特征点的世界坐标
+    """
     pass
 
 
 @dataclass
 class HandLandmarkerResultData:
+    """
+        手部特征点的检测结果
+    """
     handedness:Category
     hand_landmarks:HandLandmarksData
     hand_world_landmarks:HandWorldLandmarksData
 
 
+    def getKeyPointData(self, index:int) -> list:
+        """
+        获取关键点位数据
+
+        Args:
+            index (int): 索引顺序参考doc
+
+        Returns:
+            list: [hand_landmarks_data_for_index, hand_world_landmarks_data_for_index]
+        """
+        return [self.hand_landmarks.toList()[index], self.hand_world_landmarks.toList()[index]]
+
+
+
 @dataclass
 class GestureRecognizerResultData(HandLandmarkerResultData):
+    """
+        手势特征点检测结果
+    """
     gestures:Category
 
 
 @dataclass
 class PoseLandmarkerResultData:
-    pose_landmarks:PoseLandmarksData
-    pose_world_landmarks:PoseLandmarksData
+    """人体33个特征点跟踪结果
+    """
+    pose_landmarks          : PoseLandmarksData
+    pose_world_landmarks    : PoseLandmarksData
+
+
+    def getKeyPointData(self, index:int) -> list:
+        """
+        获取关键点位数据
+
+        Args:
+            index (int): 索引顺序参考doc
+
+        Returns:
+            list: [hand_landmarks_data_for_index, hand_world_landmarks_data_for_index]
+        """
+        return [self.pose_landmarks.toList()[index], self.pose_world_landmarks.toList()[index]]
 ## -----------------------------------------------------------------------------
 
 
 class LandMarkObservable:
-
+    """
+        landark观察者基类
+    """
     def __init__(self) -> None:
         self.__observers = []
 
