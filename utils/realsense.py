@@ -42,10 +42,16 @@ class RealSense:
         self.start_pipeline_flag = True
 
         self.depth_scale = self.pipeline.get_active_profile().get_device().first_depth_sensor().get_depth_scale()  # 获取深度比例,用于深度距离转换到真实物理空间距离
+        # 获取深度相机内参,深度相机内参转换过后获取的数据和realsense-viewer 3d显示的数据基本一致
         self.intrinsics = self.pipeline.get_active_profile().get_stream(rs.stream.depth).as_video_stream_profile().get_intrinsics()
+        # 获取彩色相机内参
+        # self.intrinsics = self.pipeline.get_active_profile().get_stream(rs.stream.color).as_video_stream_profile().get_intrinsics()
     
 
     def get_frame(self, is_get_depth_frame=True, is_get_color_frame=True, is_convert_np_array=True):
+        """
+            获取数据帧
+        """
         depth_frame, color_frame = None, None
         if not self.start_pipeline_flag:
             self.start_pipeline()
@@ -68,6 +74,11 @@ class RealSense:
         
 
     def get_align_frame(self, is_get_depth_frame=True, is_get_color_frame=True, is_convert_np_array=True):
+        """
+            获取对齐后的数据帧
+        """
+        if not self.start_pipeline_flag:
+            self.start_pipeline()
         if self.align_mode:
             frames = self.pipeline.wait_for_frames()
             aligned_frames = self.align_mode.process(frames)
@@ -90,16 +101,25 @@ class RealSense:
     
 
     def set_align_mode(self, align_mode=rs.stream.color):
+        """设置对齐模式
+
+        Args:
+            align_mode (_type_, optional): _description_. Defaults to rs.stream.color.
+        """
         self.align_mode = rs.align(align_mode)
 
 
     def get_depth_value(self, x, y, depth_frame):
+        """从深度图中获取指定位置的深度信息
+        """
         return depth_frame[y,x] * self.depth_scale
+        # return depth_frame[x, y] * self.depth_scale
 
 
-    def get_coordinate_from():
+    def get_actual_pose(self, x, y, z):
         # 根据图像上的x,y以及实际的深度信息,结合相机内参 计算出真实的物理值
-        pass
+        point = rs.rs2_deproject_pixel_to_point(self.intrinsics, [x, y], z)
+        return point
 
     def _find_devices(self):
         print("Searching Devices..")
