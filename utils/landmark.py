@@ -384,18 +384,25 @@ class PoseLandMarkDetector(LandMarkObservable):
         self.landmarker = _PoseLandmarker.create_from_options(self.options)
         self.input_image = None
         self.output_image = None
+        self.input_timestamp = None
+        self.input_flag = True
         self.result = None
         self._fps_handler = FPS()
         super().__init__()
 
 
     
-    def detect_async(self, frame, frame_timestamp_ms=int(time.time() * 1000)):
+    def detect_async(self, color_frame, depth_frame, frame_timestamp_ms=int(time.time() * 1000)):
         """
             异步检测,当上一帧图片未检测完成时,直接返回
         """
-        mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=frame)
-        self.landmarker.detect_async(mp_image, int(frame_timestamp_ms))    
+        if self.input_flag:
+            mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=color_frame)
+            self.landmarker.detect_async(mp_image, int(frame_timestamp_ms))    
+            self.input_color_image = color_frame
+            self.input_depth_image = depth_frame
+            self.input_timestamp   = frame_timestamp_ms
+            self.input_flag = False
 
 
     def get_input_image(self):
@@ -410,28 +417,33 @@ class PoseLandMarkDetector(LandMarkObservable):
         """
             异步检测回调,当检测完成后会调用
         """
-        self.result = result
+        # self.result = result
         self._fps_handler.refresh()
-        # print(f"Pose Detect:{self._fps_handler.fps}")
+        # print(f"Pose Detect:{self._fps_handler.fps} | {timestamp_ms}, {self.input_timestamp}")
+        self.input_flag = True
         if len(result.pose_landmarks) > 0:
-            # print(result.handedness)
+            self.input_timestamp = timestamp_ms
+            # print(result.pose_landmarks)
             self.output_image = draw_pose_landmarks_on_image(output_image.numpy_view(), result)
-
+            FPS.putFPSToImage(self.output_image, self._fps_handler.fps)
 
             # 创建数据
             pl = []
             for i in result.pose_landmarks[0]:
+                # print(i)
                 pl.append(LandMarkData(**i.__dict__))
             pls = PoseLandmarksData(*pl)
             pwl = []
             for i in result.pose_world_landmarks[0]:
+                # print(i)
                 pwl.append(LandMarkData(**i.__dict__))
             pwls = PoseWorldLandmarksData(*pwl)
-            self.result = PoseLandmarkerResultData(pose_landmarks=pl, pose_world_landmarks=pwls)
+            self.result = PoseLandmarkerResultData(pose_landmarks=pls, pose_world_landmarks=pwls)
             x , y, z = self.result.pose_world_landmarks.right_wrist.x, self.result.pose_world_landmarks.right_wrist.y, self.result.pose_world_landmarks.right_wrist.z
             # print(self.result.pose_world_landmarks.right_wrist)
             # print(round(x,4), round(y,4), round(z,4))
             self.notify_observers()
+            self.input_flag = True
         
 
 
@@ -456,6 +468,7 @@ class HandLandMarkDetector(LandMarkObservable):
         self.landmarker = _HandLandmarker.create_from_options(self.options)
         self.input_image = None
         self.output_image = None
+        self.input_timestamp = None
         self.result:HandLandmarkerResultData = None
         self._fps_handler = FPS()
         super().__init__()
@@ -490,6 +503,7 @@ class HandLandMarkDetector(LandMarkObservable):
         self._fps_handler.refresh()
         # print(f"Hand Detect:{self._fps_handler.fps}")
         if len(result.hand_world_landmarks) > 0:
+            self.input_timestamp = timestamp_ms
             thumb_tip = result.hand_world_landmarks[0][4]
             middle_finger_tip = result.hand_world_landmarks[0][8]
             
@@ -533,7 +547,7 @@ class GestureLandMarkDetector(LandMarkObservable):
                                                 result_callback=self.callback)    
         self.landmarker = _GestureRecognizer.create_from_options(self.options)
 
-        self.input_image = None
+        self.input_depth_image, self.input_color_image, self.input_timestamp, self.input_flag = None, None, None, True
         self.output_image = None
         self.result = None
         self._fps_handler = FPS()
@@ -549,12 +563,17 @@ class GestureLandMarkDetector(LandMarkObservable):
         return None
 
 
-    def detect_async(self, frame, frame_timestamp_ms=int(time.time() * 1000)):
+    def detect_async(self, color_frame, depth_frame,frame_timestamp_ms=int(time.time() * 1000)):
         """
             异步检测,当上一帧图片未检测完成时,直接返回
         """
-        mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=frame)
-        self.landmarker.recognize_async(mp_image, int(frame_timestamp_ms))    
+        if self.input_flag:
+            mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=color_frame)
+            self.landmarker.recognize_async(mp_image, int(frame_timestamp_ms))    
+            self.input_color_image = color_frame
+            self.input_depth_image = depth_frame
+            self.input_timestamp   = frame_timestamp_ms
+            self.input_flag = False
 
 
     def callback(self, result: _GestureRecognizerResult, output_image: mp.Image, timestamp_ms: int):
@@ -563,8 +582,10 @@ class GestureLandMarkDetector(LandMarkObservable):
         """
         # self.result = result
         self._fps_handler.refresh()
-        # print(f"Gesture Detect:{self._fps_handler.fps}")
+        # print(f"Gesture Detect:{self._fps_handler.fps} | {timestamp_ms}, {self.input_timestamp}")
+        self.input_flag = True
         if len(result.hand_world_landmarks) > 0:
+            self.input_timestamp = timestamp_ms
             thumb_tip = result.hand_world_landmarks[0][4]
             middle_finger_tip = result.hand_world_landmarks[0][8]
             
