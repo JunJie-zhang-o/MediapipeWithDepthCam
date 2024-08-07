@@ -25,6 +25,10 @@ from utils.landmark import GestureLandMarkDetector, HandLandMarkDetector ,PoseLa
 from utils.observer import GestureObserver
 from utils.image_list import ImageList
 from utils.body_handle import BodyObserver
+from orbbec.gemini2 import Gemini2
+
+import os
+os.environ["MEDIAPIPE_GPU_ENABLED"] = "1"
 
 # class BodyObserver:
 
@@ -60,13 +64,17 @@ def showHandAngle(gestureDector:GestureLandMarkDetector, handle:FingerAnglesHand
 if __name__ == "__main__":
 
 
-    realSense = RealSense(framerate=60)
-    realSense.set_align_mode()
+    # realSense = RealSense(framerate=60)
+    # realSense.set_align_mode()
+
+    gemini2 = Gemini2()
+    gemini2.set_align_mode()
+
     # handMarker = HandLandMark(model_path="model/hand_landmarker.task")
-    poseMarker = PoseLandMarkDetector(model_path="model/pose_landmarker_lite.task",
-                                      min_pose_detection_confidence=0.8,
-                                      min_pose_presence_confidence=0.8,
-                                      min_tracking_confidence=0.8)
+    poseMarker = PoseLandMarkDetector(model_path="model/pose_landmarker_full.task",
+                                      min_pose_detection_confidence=0.9,
+                                      min_pose_presence_confidence=0.9,
+                                      min_tracking_confidence=0.9)
     # poseMarker = PoseLandMarkDetector(model_path="model/pose_landmarker_heavy.task")
     gestureMarker = GestureLandMarkDetector(model_path="model/gesture_recognizer.task")
 
@@ -76,14 +84,15 @@ if __name__ == "__main__":
 
     imageDeque = ImageList()
 
-    bodyObs = BodyObserver(imageDeque, realSense)
+    # bodyObs = BodyObserver(imageDeque, realSense)
+    bodyObs = BodyObserver(imageDeque, gemini2)
 
     fAHandle = FingerAnglesHandle()
 
 
 
     # gestureMarker.add_observer(gestureOsb)
-    poseMarker.add_observer(bodyObs)
+    # poseMarker.add_observer(bodyObs)
     # *以线程方式运行观察者
     gestureObsThread = Thread(target=gestureObs.updata, args=(gestureMarker,), daemon=True, name="gestureObsThread")
     gestureObsThread.start()
@@ -102,7 +111,8 @@ if __name__ == "__main__":
             # *获取数据帧
             # depth_image, color_image = realSense.get_frame()
             # *获取对齐数据帧
-            depth_image, color_image = realSense.get_align_frame()
+            # depth_image, color_image = realSense.get_align_frame()
+            depth_image, color_image = gemini2.get_align_frame()
             # z = realSense.get_depth_value(315, 191, depth_image)
             # point =  realSense.get_actual_pose(315, 191, z)
             # print(point)
@@ -135,9 +145,9 @@ if __name__ == "__main__":
                 cv2.imshow("pose", poseMarker.output_image)
             #     pass
             if gestureMarker.output_image is not None:
-                # fAHandle.updata(handWorldLandmarks2List(gestureMarker.result.hand_world_landmarks.toList()))
+                fAHandle.updata(handWorldLandmarks2List(gestureMarker.result.hand_world_landmarks.toList()))
                 # # drawFingerAngleOnImage(gestureMarker.output_image, fAHandle.drawFingerAngleDatas)
-                # fAHandle.drawAllFingerAngleOnImage(gestureMarker.output_image, gestureMarker.result.hand_landmarks.getAllJointPoint())
+                fAHandle.drawAllFingerAngleOnImage(gestureMarker.output_image, gestureMarker.result.hand_landmarks.getAllJointPoint())
                 # cv2.putText(gestureMarker.output_image, f"Dis:{round(gestureMarker.get_thumb_indexfinger_tip_dis(),3)}m", (10,60), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,0,0), 1, cv2.LINE_AA)
                 cv2.imshow("gesture", gestureMarker.output_image)
                 pass
@@ -156,4 +166,5 @@ if __name__ == "__main__":
     finally:
         poseMarker.landmarker.close()
         # Stop streaming
-        realSense.pipeline.stop()
+        # realSense.pipeline.stop()
+        gemini2.pipeline.stop()
