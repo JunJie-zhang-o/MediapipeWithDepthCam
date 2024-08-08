@@ -3,14 +3,14 @@
 '''
 Author       : zhangjunjie jay.zhangjunjie@outlook.com
 Date         : 2024-08-07 22:20:06
-LastEditTime : 2024-08-08 00:39:25
-LastEditors  : zhangjunjie jay.zhangjunjie@outlook.com
+LastEditTime : 2024-08-08 16:04:06
+LastEditors  : jay jay.zhangjunjie@outlook.com
 Description  : 
 '''
 
 import cv2
 import numpy as np
-from pyorbbecsdk import Config, OBAlignMode, OBFormat, OBSensorType, Pipeline, get_version, get_stage_version
+from pyorbbecsdk import Config, OBAlignMode, OBFormat, OBSensorType, Pipeline
 from pyorbbecsdk import Context,OBLogLevel
 import atexit
 
@@ -90,7 +90,7 @@ class Gemini2:
         if not self.start_pipeline_flag:
             self.start_pipeline()
         while 1:
-            frames = self.pipeline.wait_for_frames(100)
+            frames = self.pipeline.wait_for_frames(1)
             if frames is not None:
                 if frames.get_color_frame() is None:
                     # print("")
@@ -132,12 +132,19 @@ class Gemini2:
     def get_depth_value(self, x, y, depth_frame):
         """从深度图中获取指定位置的深度信息
         """
-        pass
+        # pass
+        # return depth_frame[y,x] * self.depth_scale
+        return depth_frame[y,x]
 
 
     def get_actual_pose(self, x, y, z):
         # 根据图像上的x,y以及实际的深度信息,结合相机内参 计算出真实的物理值
-        pass
+        intrinsics = self.intrinsics.depth_intrinsic
+        def get(u, v, z):
+            X = (u - intrinsics.cx) * z / intrinsics.fx
+            Y = (v - intrinsics.cy) * z / intrinsics.fy
+            return [X, Y, z]
+        return get(x * self.depth_scale, y * self.depth_scale, z)
     
     
     def _find_device(self):
