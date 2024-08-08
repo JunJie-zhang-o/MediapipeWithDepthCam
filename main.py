@@ -25,28 +25,18 @@ from utils.landmark import GestureLandMarkDetector, HandLandMarkDetector ,PoseLa
 from utils.observer import GestureObserver
 from utils.image_list import ImageList
 from utils.body_handle import BodyObserver
+import os,sys
 from orbbec.gemini2 import Gemini2
 
-import os
 os.environ["MEDIAPIPE_GPU_ENABLED"] = "1"
 
-# class BodyObserver:
-
-
-#     def __init__(self, ) -> None:
-#         pass
-
-    
-
-#     def updata(self, obj:PoseLandMarkDetector):
-#         if obj.result is not None:
-#             print(obj.result.pose_world_landmarks.right_wrist)
 
 
 
 
 
-# class Trigger 
+
+
 
 
 def showHandAngle(gestureDector:GestureLandMarkDetector, handle:FingerAnglesHandle):
@@ -92,7 +82,7 @@ if __name__ == "__main__":
 
 
     # gestureMarker.add_observer(gestureOsb)
-    # poseMarker.add_observer(bodyObs)
+    poseMarker.add_observer(bodyObs)
     # *以线程方式运行观察者
     gestureObsThread = Thread(target=gestureObs.updata, args=(gestureMarker,), daemon=True, name="gestureObsThread")
     gestureObsThread.start()
@@ -143,7 +133,7 @@ if __name__ == "__main__":
             #     cv2.imshow("hand", handMarker.output_image)
             if poseMarker.output_image is not None:
                 cv2.imshow("pose", poseMarker.output_image)
-            #     pass
+                pass
             if gestureMarker.output_image is not None:
                 fAHandle.updata(handWorldLandmarks2List(gestureMarker.result.hand_world_landmarks.toList()))
                 # # drawFingerAngleOnImage(gestureMarker.output_image, fAHandle.drawFingerAngleDatas)
