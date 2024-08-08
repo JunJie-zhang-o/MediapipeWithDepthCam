@@ -42,16 +42,16 @@ class GestureObserver(Observer):
         手势特征观察者
     """
     class FuncNameLists(Enum):
-        UNKONWN = "UnKonwn"
-        OPEN = "Open_Palm"
-        CLOSE = "Closed_Palm"
-        POINTING_UP = "Pointing_Up"
-        THUMB_DOWN = "Thumb_Down"
-        THUMB_UP = "Thumb_Up"
-        VICTORY = "Victory"
-        LOVE = "ILoveYou"
-        INCREASE = "Increase"
-        REDUCE = "Reduce"
+        UNKONWN       = "UnKonwn"               # 未知手势
+        OPEN          = "Open_Palm"             # 打开手掌
+        CLOSE         = "Closed_Palm"           # 关闭手掌
+        POINTING_UP   = "Pointing_Up"           # 食指指天
+        THUMB_DOWN    = "Thumb_Down"            # 大拇指向上
+        THUMB_UP      = "Thumb_Up"              # 大拇指向下
+        VICTORY       = "Victory"               # yeah
+        LOVE          = "ILoveYou"              # 1、3、5手指向上,手掌面向或手背面向相机都可以
+        INCREASE      = "Increase"              # 大拇指和食指间距拉长
+        REDUCE        = "Reduce"                # 大拇指和食指间距减小
 
     def __init__(self) -> None:
         
