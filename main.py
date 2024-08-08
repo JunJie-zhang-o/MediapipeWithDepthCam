@@ -69,13 +69,18 @@ if __name__ == "__main__":
     gestureMarker = GestureLandMarkDetector(model_path="model/gesture_recognizer.task")
 
     gestureObs = GestureObserver()
+    imageDeque = ImageList()
+    bodyObs = BodyObserver(imageDeque, gemini2)
+
     gestureObs.register_callback(GestureObserver.FuncNameLists.INCREASE, lambda:print("inc"), duration=2, volatuationData=0.04)
     gestureObs.register_callback(GestureObserver.FuncNameLists.REDUCE, lambda:print("dec"), duration=2, volatuationData=0.04)
 
-    imageDeque = ImageList()
+    gestureObs.register_callback(GestureObserver.FuncNameLists.VICTORY, bodyObs.start_record_and_cali, duration=2, volatuationData=0)
+    gestureObs.register_callback(GestureObserver.FuncNameLists.THUMB_UP, bodyObs.stop_record_and_cali, duration=2, volatuationData=0)
+
+
 
     # bodyObs = BodyObserver(imageDeque, realSense)
-    bodyObs = BodyObserver(imageDeque, gemini2)
 
     fAHandle = FingerAnglesHandle()
 
