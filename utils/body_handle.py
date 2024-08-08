@@ -22,7 +22,7 @@ class BodyObserver:
         self._cam = cam
         self._center_frame, self._record_start_pose = None, None
         self.__height, self.__width = None, None
-        self._cali_center_frame_flag = False         
+        self._cali_flag = False         
         self.puber = zmq.Context().socket(zmq.PUB)
         self.puber.bind("tcp://*:5556")
         self.puber.set_hwm(100)
@@ -46,10 +46,11 @@ class BodyObserver:
                 timestamp = obj.input_timestamp
             else:
                 return 
+            
             if self.__height is None:
                 self.__height, self.__width = obj.output_image.shape[:2]
 
-            if not self._cali_center_frame_flag:
+            if not self._cali_flag:
                 return 
 
             # 获取mediapipe检测的归一化数据,并检测数据有效性
@@ -109,15 +110,17 @@ class BodyObserver:
         return self._center_frame
 
     
-    def refresh_center_frame(self):
+    def start_record_and_cali(self):
+        # 开始
+        print("Start Record And Cali")
         self._center_frame = None
-        self._cali_center_frame_flag = True
-
-
-    def reset_center_frame(self):
-        self._center_frame = None
-        self._cali_center_frame_flag = False
+        self._cali_flag = True
         self._record_start_pose = None
+
+
+    def stop_record_and_cali(self):
+        print("Stop Record And Cali")
+        self._cali_flag = False
 
 
 
