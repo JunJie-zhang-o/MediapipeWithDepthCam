@@ -117,6 +117,11 @@ class RealSense:
 
 
     def get_actual_pose(self, x, y, z):
+        def get(u, v, z):
+            X = (u - self.intrinsics.ppx) * z / self.intrinsics.fx
+            Y = (v - self.intrinsics.ppy) * z / self.intrinsics.fy
+            return X, Y, z
+
         # 根据图像上的x,y以及实际的深度信息,结合相机内参 计算出真实的物理值
         point = rs.rs2_deproject_pixel_to_point(self.intrinsics, [x, y], z)
         return point
