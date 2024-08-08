@@ -10,8 +10,8 @@ Description  :
 
 import cv2
 import numpy as np
-from pyorbbecsdk import Config, OBAlignMode, OBFormat, OBSensorType, Pipeline
-from pyorbbecsdk import Context,OBLogLevel
+from libs.pyorbbecsdk import Config, OBAlignMode, OBFormat, OBSensorType, Pipeline
+from libs.pyorbbecsdk import Context,OBLogLevel
 import atexit
 
 
