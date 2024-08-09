@@ -356,7 +356,6 @@ class LandMarkObservable:
     def notify_observers(self):
         for o in self.__observers:
             o.updata(self)
-            print('-')
 
 
 
@@ -370,7 +369,7 @@ class PoseLandMarkDetector(LandMarkObservable):
                  min_pose_detection_confidence=0.5,
                  min_pose_presence_confidence=0.5,
                  min_tracking_confidence=0.5,
-                 output_segmentation_masks=False,
+                 output_segmentation_masks=True,
                  result_callback=None
                  ) -> None:
         self.options = _PoseLandmarkerOptions(base_options=_BaseOptions(model_asset_path=model_path),
@@ -396,13 +395,13 @@ class PoseLandMarkDetector(LandMarkObservable):
         """
             异步检测,当上一帧图片未检测完成时,直接返回
         """
-        if self.input_flag:
-            mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=color_frame)
-            self.landmarker.detect_async(mp_image, int(frame_timestamp_ms))    
-            self.input_color_image = color_frame
-            self.input_depth_image = depth_frame
-            self.input_timestamp   = frame_timestamp_ms
-            self.input_flag = False
+        # if self.input_flag:
+        mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=color_frame)
+        self.landmarker.detect_async(mp_image, int(frame_timestamp_ms))    
+        self.input_color_image = color_frame
+        self.input_depth_image = depth_frame
+        self.input_timestamp   = frame_timestamp_ms
+        self.input_flag = False
 
 
     def get_input_image(self):
@@ -420,7 +419,7 @@ class PoseLandMarkDetector(LandMarkObservable):
         # self.result = result
         self._fps_handler.refresh()
         # print(f"Pose Detect:{self._fps_handler.fps} | {timestamp_ms}, {self.input_timestamp}")
-        self.input_flag = True
+        # self.input_flag = True
         if len(result.pose_landmarks) > 0:
             self.input_timestamp = timestamp_ms
             # print(result.pose_landmarks)
@@ -443,7 +442,7 @@ class PoseLandMarkDetector(LandMarkObservable):
             # print(self.result.pose_world_landmarks.right_wrist)
             # print(round(x,4), round(y,4), round(z,4))
             self.notify_observers()
-            self.input_flag = True
+        self.input_flag = True
         
 
 
