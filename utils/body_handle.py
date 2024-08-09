@@ -98,9 +98,9 @@ class BodyObserver:
             if self._record_start_pose is None:
                 self._record_start_pose = wrist_in_cf_pose
             
-            diff = [wrist_in_cf_pose[i] - self._record_start_pose for i in range(3)]
+            diff = [wrist_in_cf_pose[i] - self._record_start_pose[i] for i in range(3)]
 
-            print(diff[0], diff[1], diff[2])
+            print("diff", diff[0], diff[1], diff[2])
             self.puber.send_string(f"{diff[0]},{diff[1]},{diff[2]}")    
             # exit()
 
