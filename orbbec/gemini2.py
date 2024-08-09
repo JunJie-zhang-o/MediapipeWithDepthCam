@@ -3,7 +3,7 @@
 '''
 Author       : zhangjunjie jay.zhangjunjie@outlook.com
 Date         : 2024-08-07 22:20:06
-LastEditTime : 2024-08-08 16:04:06
+LastEditTime : 2024-08-09 10:24:43
 LastEditors  : jay jay.zhangjunjie@outlook.com
 Description  : 
 '''
@@ -92,15 +92,17 @@ class Gemini2:
         while 1:
             frames = self.pipeline.wait_for_frames(1)
             if frames is not None:
-                if frames.get_color_frame() is None:
-                    # print("")
-                    continue
-                break
-        if is_get_color_frame:
-            color_frame = frames.get_color_frame()
-        if is_get_depth_frame:
-            depth_frame = frames.get_depth_frame()
-            if self.depth_scale is None: self.depth_scale = depth_frame.get_depth_scale()
+                # if frames.get_color_frame() is None:
+                #     # print("")
+                #     continue
+                if is_get_color_frame:
+                    color_frame = frames.get_color_frame()
+                    if color_frame is None: continue
+                if is_get_depth_frame:
+                    depth_frame = frames.get_depth_frame()
+                    if depth_frame is None: continue
+                    if self.depth_scale is None: self.depth_scale = depth_frame.get_depth_scale()
+                    break
         if is_convert_np_array:
             ret_depth_array, ret_color_array = None, None
             if depth_frame is not None:
