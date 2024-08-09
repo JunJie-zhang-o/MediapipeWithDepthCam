@@ -105,23 +105,24 @@ class BodyObserver:
             # exit()
 
 
-
     def get_center_frame(self):
         return self._center_frame
 
     
     def start_record_and_cali(self):
         # 开始
-        print("Start Record And Cali")
-        self._center_frame = None
-        self._cali_flag = True
-        self._record_start_pose = None
+        # print(f"start | {time.time()}")
+        if not self._cali_flag:
+            print("Start Record And Cali")
+            self._center_frame = None
+            self._cali_flag = True
+            self._record_start_pose = None
 
 
     def stop_record_and_cali(self):
-        print("Stop Record And Cali")
-        self._cali_flag = False
-
+        if self._cali_flag:
+            print("Stop Record And Cali")
+            self._cali_flag = False
 
 
     def get_wrist_in_center_frame(self, wrist_point):
