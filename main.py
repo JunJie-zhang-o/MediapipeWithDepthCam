@@ -61,8 +61,9 @@ if __name__ == "__main__":
     gemini2.set_align_mode()
 
     # handMarker = HandLandMark(model_path="model/hand_landmarker.task")
+    # poseMarker = PoseLandMarkDetector(model_path="model/pose_landmarker_heavy.task",
     poseMarker = PoseLandMarkDetector(model_path="model/pose_landmarker_full.task",
-                                      min_pose_detection_confidence=0.9,
+                                      min_pose_detection_confidence=0.9, # 0.7
                                       min_pose_presence_confidence=0.9,
                                       min_tracking_confidence=0.9)
     # poseMarker = PoseLandMarkDetector(model_path="model/pose_landmarker_heavy.task")
@@ -72,11 +73,11 @@ if __name__ == "__main__":
     imageDeque = ImageList()
     bodyObs = BodyObserver(imageDeque, gemini2)
 
-    gestureObs.register_callback(GestureObserver.FuncNameLists.INCREASE, lambda:print("inc"), duration=2, volatuationData=0.04)
-    gestureObs.register_callback(GestureObserver.FuncNameLists.REDUCE, lambda:print("dec"), duration=2, volatuationData=0.04)
+    gestureObs.register_callback(GestureObserver.FuncNameLists.INCREASE, lambda: print("INC") if bodyObs._cali_flag == True else None, duration=2, volatuationData=0.05)
+    gestureObs.register_callback(GestureObserver.FuncNameLists.REDUCE, lambda:print("DEC") if bodyObs._cali_flag == True else None, duration=2, volatuationData=0.05)
 
-    gestureObs.register_callback(GestureObserver.FuncNameLists.VICTORY, bodyObs.start_record_and_cali, duration=2, volatuationData=0)
-    gestureObs.register_callback(GestureObserver.FuncNameLists.THUMB_UP, bodyObs.stop_record_and_cali, duration=2, volatuationData=0)
+    gestureObs.register_callback(GestureObserver.FuncNameLists.VICTORY, bodyObs.start_record_and_cali, duration=2.5)
+    gestureObs.register_callback(GestureObserver.FuncNameLists.THUMB_UP, bodyObs.stop_record_and_cali, duration=1)
 
 
 
@@ -101,22 +102,21 @@ if __name__ == "__main__":
     fps = FPS()
     timestamp = int(time.time() * 1000)
     try:
+
         while True:
             fps.refresh()
+            
             # *获取数据帧
             # depth_image, color_image = realSense.get_frame()
             # *获取对齐数据帧
             # depth_image, color_image = realSense.get_align_frame()
             depth_image, color_image = gemini2.get_align_frame()
-            # z = realSense.get_depth_value(315, 191, depth_image)
-            # point =  realSense.get_actual_pose(315, 191, z)
-            # print(point)
 
-            # print(time.time()* 1000)
+
             # handMarker.detect_async(color_image, timestamp)
             # imageDeque.set_image_data(color_image, depth_image, timestamp)
-            poseMarker.detect_async(color_image, depth_image, timestamp)
-            gestureMarker.detect_async(color_image, depth_image, timestamp)
+            poseMarker.detect_async(color_image, depth_image, time.time_ns() // 1_000_000)
+            gestureMarker.detect_async(color_image, depth_image, time.time_ns() // 1_000_000)
 
             # Apply colormap on depth image (image must be converted to 8-bit per pixel first)
             depth_colormap = cv2.applyColorMap(cv2.convertScaleAbs(depth_image, alpha=0.03), cv2.COLORMAP_JET)
@@ -137,18 +137,21 @@ if __name__ == "__main__":
             # if handMarker.output_image is not None:
             #     cv2.imshow("hand", handMarker.output_image)
             if poseMarker.output_image is not None:
-                cv2.imshow("pose", poseMarker.output_image)
-                pass
+                # cv2.imshow("pose", poseMarker.output_image)
+                if bodyObs.get_center_frame() is not None:
+                     
+                    pass
             if gestureMarker.output_image is not None:
-                fAHandle.updata(handWorldLandmarks2List(gestureMarker.result.hand_world_landmarks.toList()))
-                # # drawFingerAngleOnImage(gestureMarker.output_image, fAHandle.drawFingerAngleDatas)
+                # fAHandle.updata(handWorldLandmarks2List(gestureMarker.result.hand_world_landmarks.toList()))
+                drawFingerAngleOnImage(gestureMarker.output_image, fAHandle.drawFingerAngleDatas)
                 fAHandle.drawAllFingerAngleOnImage(gestureMarker.output_image, gestureMarker.result.hand_landmarks.getAllJointPoint())
-                # cv2.putText(gestureMarker.output_image, f"Dis:{round(gestureMarker.get_thumb_indexfinger_tip_dis(),3)}m", (10,60), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,0,0), 1, cv2.LINE_AA)
-                cv2.imshow("gesture", gestureMarker.output_image)
-                pass
+                cv2.putText(gestureMarker.output_image, f"Dis:{round(gestureMarker.get_thumb_indexfinger_tip_dis(),3)}m", (10,60), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,0,0), 1, cv2.LINE_AA)
+                cv2.putText(gestureMarker.output_image, f"Gesture:{gestureMarker.result.gestures.category_name}", (10,90), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,0,0), 1, cv2.LINE_AA)
+                # cv2.imshow("gesture", gestureMarker.output_image)
 
-                # images = np.vstack((images,np.hstack((poseMarker.output_image, gestureMarker.output_image))))
-                # images = cv2.resize(images, None, fx=0.5, fy=0.5)
+            if poseMarker.output_image is not None and gestureMarker.output_image is not None:
+                downImage = np.hstack((poseMarker.output_image, gestureMarker.output_image))
+                images = np.vstack((images, downImage))
             cv2.namedWindow('RealSense', cv2.WINDOW_AUTOSIZE)
             cv2.imshow('RealSense', images)
             key = cv2.waitKey(1)
@@ -163,3 +166,4 @@ if __name__ == "__main__":
         # Stop streaming
         # realSense.pipeline.stop()
         gemini2.pipeline.stop()
+        print("End")
