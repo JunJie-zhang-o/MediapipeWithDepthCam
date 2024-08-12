@@ -423,8 +423,7 @@ class PoseLandMarkDetector(LandMarkObservable):
         if len(result.pose_landmarks) > 0:
             self.input_timestamp = timestamp_ms
             # print(result.pose_landmarks)
-            self.output_image = draw_pose_landmarks_on_image(output_image.numpy_view(), result)
-            FPS.putFPSToImage(self.output_image, self._fps_handler.fps)
+            
 
             # 创建数据
             pl = []
@@ -441,6 +440,8 @@ class PoseLandMarkDetector(LandMarkObservable):
             x , y, z = self.result.pose_world_landmarks.right_wrist.x, self.result.pose_world_landmarks.right_wrist.y, self.result.pose_world_landmarks.right_wrist.z
             # print(self.result.pose_world_landmarks.right_wrist)
             # print(round(x,4), round(y,4), round(z,4))
+            self.output_image = draw_pose_landmarks_on_image(output_image.numpy_view(), result)
+            FPS.putFPSToImage(self.output_image, self._fps_handler.fps)
             self.notify_observers()
         self.input_flag = True
         
@@ -506,8 +507,7 @@ class HandLandMarkDetector(LandMarkObservable):
             thumb_tip = result.hand_world_landmarks[0][4]
             middle_finger_tip = result.hand_world_landmarks[0][8]
             
-            self.output_image = draw_hand_landmarks_on_image(output_image.numpy_view(), result)
-
+            
 
             # 创建数据
             hl = []
@@ -520,6 +520,7 @@ class HandLandMarkDetector(LandMarkObservable):
             hwls = HandWorldLandmarksData(*hwl)
             hddness = Category(**result.handedness[0][0].__dict__)
             self.result = HandLandmarkerResultData(handedness=hddness, hand_landmarks=hls, hand_world_landmarks=hwls)
+            self.output_image = draw_hand_landmarks_on_image(output_image.numpy_view(), result)
             self.notify_observers()
 
 
@@ -589,8 +590,7 @@ class GestureLandMarkDetector(LandMarkObservable):
             middle_finger_tip = result.hand_world_landmarks[0][8]
             
 
-            self.output_image = draw_hand_landmarks_on_image(output_image.numpy_view(), result)
-            FPS.putFPSToImage(self.output_image, self._fps_handler.fps)
+            
             # 创建数据
             hl = []
             for i in result.hand_landmarks[0]:
@@ -604,6 +604,9 @@ class GestureLandMarkDetector(LandMarkObservable):
             gst= Category(**result.gestures[0][0].__dict__)
             self.result = GestureRecognizerResultData(handedness=hddness, gestures=gst, hand_landmarks=hls, hand_world_landmarks=hwls)
             # print(self.result.gestures.category_name)
+            self.output_image = draw_hand_landmarks_on_image(output_image.numpy_view(), result)
+            FPS.putFPSToImage(self.output_image, self._fps_handler.fps)
             self.notify_observers()
             # print(self.get_thumb_indexfinger_tip_dis())
+
 
