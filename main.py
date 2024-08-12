@@ -76,7 +76,11 @@ if __name__ == "__main__":
     gestureObs.register_callback(GestureObserver.FuncNameLists.INCREASE, lambda: print("INC") if bodyObs._cali_flag == True else None, duration=2, volatuationData=0.05)
     gestureObs.register_callback(GestureObserver.FuncNameLists.REDUCE, lambda:print("DEC") if bodyObs._cali_flag == True else None, duration=2, volatuationData=0.05)
 
+    # 比yeah开始,牛
     gestureObs.register_callback(GestureObserver.FuncNameLists.VICTORY, bodyObs.start_record_and_cali, duration=2.5)
+    from xmlrpc import client
+    # gestureObs.register_callback(GestureObserver.FuncNameLists.THUMB_UP, lambda : client.ServerProxy("http://192.168.40.216:9120/", allow_none=True).setData() if bodyObs._cali_flag else None, duration=1)
+    gestureObs.register_callback(GestureObserver.FuncNameLists.THUMB_UP, lambda : client.ServerProxy("http://192.168.1.3:9120/", allow_none=True).setData() if bodyObs._cali_flag else None, duration=1)
     gestureObs.register_callback(GestureObserver.FuncNameLists.THUMB_UP, bodyObs.stop_record_and_cali, duration=1)
 
 
@@ -142,8 +146,8 @@ if __name__ == "__main__":
                      
                     pass
             if gestureMarker.output_image is not None:
-                # fAHandle.updata(handWorldLandmarks2List(gestureMarker.result.hand_world_landmarks.toList()))
-                drawFingerAngleOnImage(gestureMarker.output_image, fAHandle.drawFingerAngleDatas)
+                fAHandle.updata(handWorldLandmarks2List(gestureMarker.result.hand_world_landmarks.toList()))
+                # drawFingerAngleOnImage(gestureMarker.output_image, fAHandle.drawFingerAngleDatas)
                 fAHandle.drawAllFingerAngleOnImage(gestureMarker.output_image, gestureMarker.result.hand_landmarks.getAllJointPoint())
                 cv2.putText(gestureMarker.output_image, f"Dis:{round(gestureMarker.get_thumb_indexfinger_tip_dis(),3)}m", (10,60), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,0,0), 1, cv2.LINE_AA)
                 cv2.putText(gestureMarker.output_image, f"Gesture:{gestureMarker.result.gestures.category_name}", (10,90), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,0,0), 1, cv2.LINE_AA)
