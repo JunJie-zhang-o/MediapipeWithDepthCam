@@ -583,7 +583,7 @@ class GestureLandMarkDetector(LandMarkObservable):
         # self.result = result
         self._fps_handler.refresh()
         # print(f"Gesture Detect:{self._fps_handler.fps} | {timestamp_ms}, {self.input_timestamp}")
-        self.input_flag = True
+        
         if len(result.hand_world_landmarks) > 0:
             self.input_timestamp = timestamp_ms
             thumb_tip = result.hand_world_landmarks[0][4]
@@ -608,5 +608,6 @@ class GestureLandMarkDetector(LandMarkObservable):
             FPS.putFPSToImage(self.output_image, self._fps_handler.fps)
             self.notify_observers()
             # print(self.get_thumb_indexfinger_tip_dis())
+        self.input_flag = True
 
 
