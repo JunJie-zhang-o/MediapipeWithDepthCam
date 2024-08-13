@@ -21,6 +21,7 @@ import numpy as np
 from utils.finger_angle import FingerAnglesHandle, handWorldLandmarks2List, drawFingerAngleOnImage
 from utils.fps import FPS
 from utils.realsense import RealSense
+from xmlrpc import client
 from utils.landmark import GestureLandMarkDetector, HandLandMarkDetector ,PoseLandMarkDetector
 from utils.observer import GestureObserver
 from utils.image_list import ImageList
@@ -57,31 +58,45 @@ if __name__ == "__main__":
     # realSense = RealSense(framerate=60)
     # realSense.set_align_mode()
 
+    # client.ServerProxy("http://127.0.0.1:9120/", allow_none=True).adaptive_open()
+    # client.ServerProxy("http://127.0.0.1:9120/", allow_none=True).open()
+    # client.ServerProxy("http://127.0.0.1:9120/", allow_none=True).close()
+    # client.ServerProxy("http://127.0.0.1:9120/", allow_none=True).adaptive_close()
+    # exit()
+
+
     gemini2 = Gemini2()
     gemini2.set_align_mode()
 
     # handMarker = HandLandMark(model_path="model/hand_landmarker.task")
-    # poseMarker = PoseLandMarkDetector(model_path="model/pose_landmarker_heavy.task",
-    poseMarker = PoseLandMarkDetector(model_path="model/pose_landmarker_full.task",
-                                      min_pose_detection_confidence=0.9, # 0.7
+    poseMarker = PoseLandMarkDetector(model_path="model/pose_landmarker_heavy.task",
+    # poseMarker = PoseLandMarkDetector(model_path="model/pose_landmarker_full.task",
+    # poseMarker = PoseLandMarkDetector(model_path="model/pose_landmarker_lite.task",
+                                      min_pose_detection_confidence=0.5, # 0.7
                                       min_pose_presence_confidence=0.9,
-                                      min_tracking_confidence=0.9)
-    # poseMarker = PoseLandMarkDetector(model_path="model/pose_landmarker_heavy.task")
-    gestureMarker = GestureLandMarkDetector(model_path="model/gesture_recognizer.task")
+                                      min_tracking_confidence=0.7)
+    gestureMarker = GestureLandMarkDetector(model_path="model/gesture_recognizer.task",
+                                            min_hand_detection_confidence=0.3,
+                                            min_hand_presence_confidence=0.3,
+                                            min_tracking_confidence=0.3)
 
-    gestureObs = GestureObserver()
+    gestureObs = GestureObserver(cam=gemini2)
     imageDeque = ImageList()
     bodyObs = BodyObserver(imageDeque, gemini2)
 
-    gestureObs.register_callback(GestureObserver.FuncNameLists.INCREASE, lambda: print("INC") if bodyObs._cali_flag == True else None, duration=2, volatuationData=0.05)
-    gestureObs.register_callback(GestureObserver.FuncNameLists.REDUCE, lambda:print("DEC") if bodyObs._cali_flag == True else None, duration=2, volatuationData=0.05)
+    # gestureObs.register_callback(GestureObserver.FuncNameLists.INCREASE, lambda: print("INC") if bodyObs._cali_flag == True else None, duration=2, volatuationData=0.05)
+    # gestureObs.register_callback(GestureObserver.FuncNameLists.REDUCE, lambda:print("DEC") if bodyObs._cali_flag == True else None, duration=2, volatuationData=0.05)
+    gestureObs.register_callback(GestureObserver.FuncNameLists.INCREASE, lambda: client.ServerProxy("http://127.0.0.1:9120/", allow_none=True).open() if bodyObs._cali_flag == True else None, duration=2, volatuationData=0.05)
+    gestureObs.register_callback(GestureObserver.FuncNameLists.REDUCE, lambda: client.ServerProxy("http://127.0.0.1:9120/", allow_none=True).adaptive_close() if bodyObs._cali_flag == True else None, duration=2, volatuationData=0.05)
 
     # 比yeah开始,牛
-    gestureObs.register_callback(GestureObserver.FuncNameLists.VICTORY, bodyObs.start_record_and_cali, duration=2.5)
-    from xmlrpc import client
+    # gestureObs.register_callback(GestureObserver.FuncNameLists.VICTORY, bodyObs.start_record_and_cali, duration=2.5)
+    gestureObs.register_callback(GestureObserver.FuncNameLists.VICTORY, gestureObs.start_record_and_cali, duration=2.5)
+
     # gestureObs.register_callback(GestureObserver.FuncNameLists.THUMB_UP, lambda : client.ServerProxy("http://192.168.40.216:9120/", allow_none=True).setData() if bodyObs._cali_flag else None, duration=1)
-    gestureObs.register_callback(GestureObserver.FuncNameLists.THUMB_UP, lambda : client.ServerProxy("http://192.168.1.3:9120/", allow_none=True).setData() if bodyObs._cali_flag else None, duration=1)
-    gestureObs.register_callback(GestureObserver.FuncNameLists.THUMB_UP, bodyObs.stop_record_and_cali, duration=1)
+    gestureObs.register_callback(GestureObserver.FuncNameLists.THUMB_UP, lambda: client.ServerProxy("http://127.0.0.1:9121/", allow_none=True).setData() if bodyObs._cali_flag else None, duration=1)
+    # gestureObs.register_callback(GestureObserver.FuncNameLists.THUMB_UP, bodyObs.stop_record_and_cali, duration=1)
+    gestureObs.register_callback(GestureObserver.FuncNameLists.THUMB_UP, gestureObs.stop_record_and_cali, duration=1)
 
 
 
@@ -91,11 +106,11 @@ if __name__ == "__main__":
 
 
 
-    # gestureMarker.add_observer(gestureOsb)
+    gestureMarker.add_observer(gestureObs)
     poseMarker.add_observer(bodyObs)
     # *以线程方式运行观察者
     gestureObsThread = Thread(target=gestureObs.updata, args=(gestureMarker,), daemon=True, name="gestureObsThread")
-    gestureObsThread.start()
+    # gestureObsThread.start()
 
     # bodyObsThread = Thread(target=bodyObs.updata, args=(poseMarker,), daemon=True, name="bodyObsThread")
     # bodyObsThread.start()
@@ -151,11 +166,11 @@ if __name__ == "__main__":
                 fAHandle.drawAllFingerAngleOnImage(gestureMarker.output_image, gestureMarker.result.hand_landmarks.getAllJointPoint())
                 cv2.putText(gestureMarker.output_image, f"Dis:{round(gestureMarker.get_thumb_indexfinger_tip_dis(),3)}m", (10,60), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,0,0), 1, cv2.LINE_AA)
                 cv2.putText(gestureMarker.output_image, f"Gesture:{gestureMarker.result.gestures.category_name}", (10,90), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,0,0), 1, cv2.LINE_AA)
-                # cv2.imshow("gesture", gestureMarker.output_image)
+                cv2.imshow("gesture", gestureMarker.output_image)
 
-            if poseMarker.output_image is not None and gestureMarker.output_image is not None:
-                downImage = np.hstack((poseMarker.output_image, gestureMarker.output_image))
-                images = np.vstack((images, downImage))
+            # if poseMarker.output_image is not None and gestureMarker.output_image is not None:
+            #     downImage = np.hstack((poseMarker.output_image, gestureMarker.output_image))
+            #     images = np.vstack((images, downImage))
             cv2.namedWindow('RealSense', cv2.WINDOW_AUTOSIZE)
             cv2.imshow('RealSense', images)
             key = cv2.waitKey(1)
