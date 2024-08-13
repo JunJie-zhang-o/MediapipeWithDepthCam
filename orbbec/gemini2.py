@@ -3,8 +3,8 @@
 '''
 Author       : zhangjunjie jay.zhangjunjie@outlook.com
 Date         : 2024-08-07 22:20:06
-LastEditTime : 2024-08-09 10:24:43
-LastEditors  : jay jay.zhangjunjie@outlook.com
+LastEditTime : 2024-08-14 00:01:59
+LastEditors  : zhangjunjie jay.zhangjunjie@outlook.com
 Description  : 
 '''
 
@@ -108,8 +108,8 @@ class Gemini2:
             if depth_frame is not None:
                 depth_data = np.frombuffer(depth_frame.get_data(), dtype=np.uint16)
                 depth_data = depth_data.reshape((depth_frame.get_height(), depth_frame.get_width()))
-                depth_data = depth_data.astype(np.float32) * depth_frame.get_depth_scale()
-                ret_depth_array = cv2.normalize(depth_data, None, 0, 255, cv2.NORM_MINMAX, dtype=cv2.CV_8U)
+                ret_depth_array = depth_data.astype(np.float32) * depth_frame.get_depth_scale()
+                # ret_depth_array = cv2.normalize(depth_data, None, 0, 255, cv2.NORM_MINMAX, dtype=cv2.CV_8U)
             if color_frame is not None:
                 data = np.asanyarray(color_frame.get_data())
                 image = np.resize(data, (color_frame.get_height(), color_frame.get_width(), 3))
