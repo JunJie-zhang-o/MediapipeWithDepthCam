@@ -136,7 +136,7 @@ class GestureObserver(Observer):
         INCREASE      = "Increase"              # 大拇指和食指间距拉长
         REDUCE        = "Reduce"                # 大拇指和食指间距减小
 
-    def __init__(self) -> None:
+    def __init__(self, cam) -> None:
         
         # self.duration = {}
         # self.volatuationData = {}
@@ -144,6 +144,10 @@ class GestureObserver(Observer):
 
         self.__t = {}
         self._db = {}
+        self._cam = cam
+        self.wristPose = None
+        self._cali_flag = False  
+        self._record_start_pose = None
 
     
     def register_callback(self, name:FuncNameLists, callback, duration, volatuationData=None):
@@ -168,13 +172,28 @@ class GestureObserver(Observer):
 
     
     def updata(self, obj:GestureLandMarkDetector):
-        t = 0
-        while 1:
-            time.sleep(0.001)
+        # t = 0
+        # while 1:
+        #     time.sleep(0.001)
             now = time.time()
             if type(obj.result) is not GestureRecognizerResultData:
-                continue
+                # continue
+                return 
             gesture = obj.result.gestures.category_name
+            wristPose =  obj.result.hand_landmarks.wrist.getPose()
+            # print(wristPose)
+            if obj.output_image is not None:
+                imgH, imgW = obj.output_image.shape[:2]
+                # 暂时不做是否在屏幕外的检测
+                wristXY = [int(wristPose[0]*imgW), int(wristPose[1]*imgH)]
+                print(wristXY)
+                if wristPose[0] > 1 or wristPose[0] < 0:
+                    return 
+                if wristPose[1] > 1 or wristPose[1] < 0:
+                    return 
+                self.wristPose = self._cam.get_actual_pose(wristXY[0], wristXY[1], self._cam.get_depth_value(wristXY[0], wristXY[1], obj.input_depth_image))
+                print(self.wristPose)
+                print(self._record_start_pose)
             # print(gesture)
             dis = obj.get_thumb_indexfinger_tip_dis()
 
@@ -195,7 +214,8 @@ class GestureObserver(Observer):
             if self.FuncNameLists.INCREASE.value in self._callbackFuncDict.keys() or self.FuncNameLists.REDUCE.value in self._callbackFuncDict.keys():
                 if self._db.get("dis", None) is None:
                     self._db["dis"] = dis
-                    continue 
+                    # continue 
+                    return 
                 # db_dis = self._db.get("dis")
                 # diff = dis - db_dis
                 # if diff > 0:
@@ -210,8 +230,15 @@ class GestureObserver(Observer):
                 # if t == 100:
                 #     self._db["dis"] = dis
                 #     t = 0
+            if not self._cali_flag:
+                return 
+            if self._record_start_pose is None:
+                self._record_start_pose = self.wristPose
 
-
+            diff = [int(self.wristPose[i]) - int(self._record_start_pose[i]) for i in range(3)]
+            # print(self.wristPose[2], self._record_start_pose[2])
+            # print(int(self.wristPose[2]) - int(self._record_start_pose[2]))
+            print("Gesture diff", diff[0], diff[1], diff[2])
                 
 
             """
@@ -266,6 +293,21 @@ class GestureObserver(Observer):
                                 self.__t["dis"] = now
                                 print("dec", round(diff, 4), round(dis, 4))
             """
+
+
+    def start_record_and_cali(self):
+        # 开始
+        # print(f"start | {time.time()}")
+        if not self._cali_flag:
+            print("Start Record And Cali Gesture")
+            self._cali_flag = True
+            self._record_start_pose = None
+
+
+    def stop_record_and_cali(self):
+        if self._cali_flag:
+            print("Stop Record And Cali Gesture")
+            self._cali_flag = False
                         
 
 
