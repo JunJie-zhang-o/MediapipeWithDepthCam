@@ -90,9 +90,9 @@ class BodyObserver:
                 # 以左右肩为中心点,中心点到左肩为X正方向,中心点到鼻子为Y正方向
                 self._center_frame = get_user_frame(center, left_shoulder_point, nose_point)
                 # 修正坐标系与相机坐标系进行对齐
-                self._center_frame.rx = -3.14
-                self._center_frame.ry = 0
-                self._center_frame.rz = 0
+                # self._center_frame.rx = -3.14
+                # self._center_frame.ry = 0
+                # self._center_frame.rz = 0
             # 获取右手手腕在中心坐标系的位置
             wrist_in_cf_pose = self.get_wrist_in_center_frame(right_wrist_point)
             if self._record_start_pose is None:
