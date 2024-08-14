@@ -76,25 +76,25 @@ if __name__ == "__main__":
                                       min_pose_presence_confidence=0.9,
                                       min_tracking_confidence=0.7)
     gestureMarker = GestureLandMarkDetector(model_path="model/gesture_recognizer.task",
-                                            min_hand_detection_confidence=0.3,
-                                            min_hand_presence_confidence=0.3,
-                                            min_tracking_confidence=0.3)
+                                            min_hand_detection_confidence=0.5,
+                                            min_hand_presence_confidence=0.5,
+                                            min_tracking_confidence=0.5)
 
     gestureObs = GestureObserver(cam=gemini2)
     imageDeque = ImageList()
-    bodyObs = BodyObserver(imageDeque, gemini2)
+    # bodyObs = BodyObserver(imageDeque, gemini2)
 
     # gestureObs.register_callback(GestureObserver.FuncNameLists.INCREASE, lambda: print("INC") if bodyObs._cali_flag == True else None, duration=2, volatuationData=0.05)
     # gestureObs.register_callback(GestureObserver.FuncNameLists.REDUCE, lambda:print("DEC") if bodyObs._cali_flag == True else None, duration=2, volatuationData=0.05)
-    gestureObs.register_callback(GestureObserver.FuncNameLists.INCREASE, lambda: client.ServerProxy("http://127.0.0.1:9120/", allow_none=True).open() if bodyObs._cali_flag == True else None, duration=2, volatuationData=0.05)
-    gestureObs.register_callback(GestureObserver.FuncNameLists.REDUCE, lambda: client.ServerProxy("http://127.0.0.1:9120/", allow_none=True).adaptive_close() if bodyObs._cali_flag == True else None, duration=2, volatuationData=0.05)
+    gestureObs.register_callback(GestureObserver.FuncNameLists.INCREASE, lambda: client.ServerProxy("http://127.0.0.1:9120/", allow_none=True).open() if gestureObs._cali_flag == True else None, duration=1.5, volatuationData=0.03)
+    gestureObs.register_callback(GestureObserver.FuncNameLists.REDUCE, lambda: client.ServerProxy("http://127.0.0.1:9120/", allow_none=True).adaptive_close() if gestureObs._cali_flag == True else None, duration=1.5, volatuationData=0.03)
 
     # 比yeah开始,牛
     # gestureObs.register_callback(GestureObserver.FuncNameLists.VICTORY, bodyObs.start_record_and_cali, duration=2.5)
     gestureObs.register_callback(GestureObserver.FuncNameLists.VICTORY, gestureObs.start_record_and_cali, duration=2.5)
 
     # gestureObs.register_callback(GestureObserver.FuncNameLists.THUMB_UP, lambda : client.ServerProxy("http://192.168.40.216:9120/", allow_none=True).setData() if bodyObs._cali_flag else None, duration=1)
-    gestureObs.register_callback(GestureObserver.FuncNameLists.THUMB_UP, lambda: client.ServerProxy("http://127.0.0.1:9121/", allow_none=True).setData() if bodyObs._cali_flag else None, duration=1)
+    gestureObs.register_callback(GestureObserver.FuncNameLists.THUMB_UP, lambda: client.ServerProxy("http://127.0.0.1:9121/", allow_none=True).setData() if gestureObs._cali_flag else None, duration=1)
     # gestureObs.register_callback(GestureObserver.FuncNameLists.THUMB_UP, bodyObs.stop_record_and_cali, duration=1)
     gestureObs.register_callback(GestureObserver.FuncNameLists.THUMB_UP, gestureObs.stop_record_and_cali, duration=1)
 
@@ -107,7 +107,7 @@ if __name__ == "__main__":
 
 
     gestureMarker.add_observer(gestureObs)
-    poseMarker.add_observer(bodyObs)
+    # poseMarker.add_observer(bodyObs)
     # *以线程方式运行观察者
     gestureObsThread = Thread(target=gestureObs.updata, args=(gestureMarker,), daemon=True, name="gestureObsThread")
     # gestureObsThread.start()
@@ -157,7 +157,7 @@ if __name__ == "__main__":
             #     cv2.imshow("hand", handMarker.output_image)
             if poseMarker.output_image is not None:
                 # cv2.imshow("pose", poseMarker.output_image)
-                if bodyObs.get_center_frame() is not None:
+                # if bodyObs.get_center_frame() is not None:
                      
                     pass
             if gestureMarker.output_image is not None:
