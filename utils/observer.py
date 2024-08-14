@@ -8,6 +8,8 @@ import time
 from typing import Dict
 from enum import Enum
 
+import zmq
+
 from utils.landmark import GestureLandMarkDetector, GestureRecognizerResultData
 
 
@@ -148,6 +150,9 @@ class GestureObserver(Observer):
         self.wristPose = None
         self._cali_flag = False  
         self._record_start_pose = None
+        self.puber = zmq.Context().socket(zmq.PUB)
+        self.puber.bind("tcp://*:5556")
+        self.puber.set_hwm(100)
 
     
     def register_callback(self, name:FuncNameLists, callback, duration, volatuationData=None):
@@ -192,8 +197,7 @@ class GestureObserver(Observer):
                 if wristPose[1] > 1 or wristPose[1] < 0:
                     return 
                 self.wristPose = self._cam.get_actual_pose(wristXY[0], wristXY[1], self._cam.get_depth_value(wristXY[0], wristXY[1], obj.input_depth_image))
-                print(self.wristPose)
-                print(self._record_start_pose)
+                
             # print(gesture)
             dis = obj.get_thumb_indexfinger_tip_dis()
 
@@ -234,11 +238,17 @@ class GestureObserver(Observer):
                 return 
             if self._record_start_pose is None:
                 self._record_start_pose = self.wristPose
+            
+            if self.wristPose[0] == 0 and self.wristPose[1] == 0 and self.wristPose[2] == 0:
+                return 
+            print(self.wristPose)
+            print(self._record_start_pose)
 
             diff = [int(self.wristPose[i]) - int(self._record_start_pose[i]) for i in range(3)]
             # print(self.wristPose[2], self._record_start_pose[2])
             # print(int(self.wristPose[2]) - int(self._record_start_pose[2]))
             print("Gesture diff", diff[0], diff[1], diff[2])
+            self.puber.send_string(f"{diff[0]},{diff[1]},{diff[2]}") 
                 
 
             """
