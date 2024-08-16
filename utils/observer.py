@@ -185,19 +185,7 @@ class GestureObserver(Observer):
                 # continue
                 return 
             gesture = obj.result.gestures.category_name
-            wristPose =  obj.result.hand_landmarks.wrist.getPose()
-            # print(wristPose)
-            if obj.output_image is not None:
-                imgH, imgW = obj.output_image.shape[:2]
-                # 暂时不做是否在屏幕外的检测
-                wristXY = [int(wristPose[0]*imgW), int(wristPose[1]*imgH)]
-                print(wristXY)
-                if wristPose[0] > 1 or wristPose[0] < 0:
-                    return 
-                if wristPose[1] > 1 or wristPose[1] < 0:
-                    return 
-                self.wristPose = self._cam.get_actual_pose(wristXY[0], wristXY[1], self._cam.get_depth_value(wristXY[0], wristXY[1], obj.input_depth_image))
-                
+           
             # print(gesture)
             dis = obj.get_thumb_indexfinger_tip_dis()
 
@@ -236,13 +224,29 @@ class GestureObserver(Observer):
                 #     t = 0
             if not self._cali_flag:
                 return 
+            
+            # 检测手腕数据
+            wristPose =  obj.result.hand_landmarks.wrist.getPose()
+            # print(wristPose)
+            if obj.output_image is not None:
+                imgH, imgW = obj.output_image.shape[:2]
+                # todo暂时不做是否在屏幕外的检测
+                wristXY = [int(wristPose[0]*imgW), int(wristPose[1]*imgH)]
+                print(wristXY)
+                if wristPose[0] > 1 or wristPose[0] < 0:
+                    return 
+                if wristPose[1] > 1 or wristPose[1] < 0:
+                    return 
+                self.wristPose = self._cam.get_actual_pose(wristXY[0], wristXY[1], self._cam.get_depth_value(wristXY[0], wristXY[1], obj.input_depth_image))
+                
+
             if self._record_start_pose is None:
                 self._record_start_pose = self.wristPose
             
             if self.wristPose[0] == 0 and self.wristPose[1] == 0 and self.wristPose[2] == 0:
                 return 
-            print(self.wristPose)
-            print(self._record_start_pose)
+            # print(self.wristPose)
+            # print(self._record_start_pose)
 
             diff = [int(self.wristPose[i]) - int(self._record_start_pose[i]) for i in range(3)]
             # print(self.wristPose[2], self._record_start_pose[2])
