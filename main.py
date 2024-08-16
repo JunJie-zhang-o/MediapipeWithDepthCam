@@ -55,15 +55,6 @@ def showHandAngle(gestureDector:GestureLandMarkDetector, handle:FingerAnglesHand
 if __name__ == "__main__":
 
 
-    # realSense = RealSense(framerate=60)
-    # realSense.set_align_mode()
-
-    # client.ServerProxy("http://127.0.0.1:9120/", allow_none=True).adaptive_open()
-    # client.ServerProxy("http://127.0.0.1:9120/", allow_none=True).open()
-    # client.ServerProxy("http://127.0.0.1:9120/", allow_none=True).close()
-    # client.ServerProxy("http://127.0.0.1:9120/", allow_none=True).adaptive_close()
-    # exit()
-
 
     gemini2 = Gemini2()
     gemini2.set_align_mode()
@@ -75,10 +66,10 @@ if __name__ == "__main__":
                                       min_pose_detection_confidence=0.5, # 0.7
                                       min_pose_presence_confidence=0.9,
                                       min_tracking_confidence=0.7)
-    gestureMarker = GestureLandMarkDetector(model_path="model/gesture_recognizer.task",
-                                            min_hand_detection_confidence=0.5,
-                                            min_hand_presence_confidence=0.5,
-                                            min_tracking_confidence=0.5)
+    gestureMarker = GestureLandMarkDetector(model_path="model/gesture_recognizer.task")
+                                            # min_hand_detection_confidence=0.3,
+                                            # min_hand_presence_confidence=0.3,
+                                            # min_tracking_confidence=0.5)
 
     gestureObs = GestureObserver(cam=gemini2)
     imageDeque = ImageList()
@@ -86,8 +77,9 @@ if __name__ == "__main__":
 
     # gestureObs.register_callback(GestureObserver.FuncNameLists.INCREASE, lambda: print("INC") if bodyObs._cali_flag == True else None, duration=2, volatuationData=0.05)
     # gestureObs.register_callback(GestureObserver.FuncNameLists.REDUCE, lambda:print("DEC") if bodyObs._cali_flag == True else None, duration=2, volatuationData=0.05)
-    gestureObs.register_callback(GestureObserver.FuncNameLists.INCREASE, lambda: client.ServerProxy("http://127.0.0.1:9120/", allow_none=True).open() if gestureObs._cali_flag == True else None, duration=1.5, volatuationData=0.03)
-    gestureObs.register_callback(GestureObserver.FuncNameLists.REDUCE, lambda: client.ServerProxy("http://127.0.0.1:9120/", allow_none=True).adaptive_close() if gestureObs._cali_flag == True else None, duration=1.5, volatuationData=0.03)
+
+    gestureObs.register_callback(GestureObserver.FuncNameLists.INCREASE, lambda: client.ServerProxy("http://127.0.0.1:9120/", allow_none=True).open_no_block() if gestureObs._cali_flag == True else None, duration=1.5, volatuationData=0.03)
+    gestureObs.register_callback(GestureObserver.FuncNameLists.REDUCE, lambda: client.ServerProxy("http://127.0.0.1:9120/", allow_none=True).adaptive_close_no_block() if gestureObs._cali_flag == True else None, duration=1.5, volatuationData=0.03)
 
     # 比yeah开始,牛
     # gestureObs.register_callback(GestureObserver.FuncNameLists.VICTORY, bodyObs.start_record_and_cali, duration=2.5)
@@ -133,8 +125,7 @@ if __name__ == "__main__":
 
 
             # handMarker.detect_async(color_image, timestamp)
-            # imageDeque.set_image_data(color_image, depth_image, timestamp)
-            poseMarker.detect_async(color_image, depth_image, time.time_ns() // 1_000_000)
+            # poseMarker.detect_async(color_image, depth_image, time.time_ns() // 1_000_000)
             gestureMarker.detect_async(color_image, depth_image, time.time_ns() // 1_000_000)
 
             # Apply colormap on depth image (image must be converted to 8-bit per pixel first)
