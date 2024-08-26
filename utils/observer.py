@@ -2,11 +2,11 @@
 
 
 from abc import ABC, abstractmethod
-import math
 from threading import Thread
 import time
 from typing import Dict
 from enum import Enum
+from xmlrpc import client
 
 import zmq
 
@@ -222,7 +222,8 @@ class GestureObserver(Observer):
                 # if t == 100:
                 #     self._db["dis"] = dis
                 #     t = 0
-            if not self._cali_flag:
+            if self._cali_flag == False:
+                self.puber.send_string(f"0,0,0") 
                 return 
             
             # 检测手腕数据
@@ -312,16 +313,18 @@ class GestureObserver(Observer):
     def start_record_and_cali(self):
         # 开始
         # print(f"start | {time.time()}")
-        if not self._cali_flag:
+        if self._cali_flag == False:
             print("Start Record And Cali Gesture")
             self._cali_flag = True
             self._record_start_pose = None
-
+            client.ServerProxy("http://127.0.0.1:9121/", allow_none=True).startPushData()
 
     def stop_record_and_cali(self):
-        if self._cali_flag:
+        if self._cali_flag == True:
             print("Stop Record And Cali Gesture")
             self._cali_flag = False
+            # client.ServerProxy("http://127.0.0.1:9121/", allow_none=True).setData()
+            client.ServerProxy("http://127.0.0.1:9121/", allow_none=True).stopPushData()
                         
 
 

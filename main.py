@@ -88,9 +88,9 @@ if __name__ == "__main__":
     gestureObs.register_callback(GestureObserver.FuncNameLists.VICTORY, gestureObs.start_record_and_cali, duration=2.5)
 
     # gestureObs.register_callback(GestureObserver.FuncNameLists.THUMB_UP, lambda : client.ServerProxy("http://192.168.40.216:9120/", allow_none=True).setData() if bodyObs._cali_flag else None, duration=1)
-    gestureObs.register_callback(GestureObserver.FuncNameLists.THUMB_UP, lambda: client.ServerProxy("http://127.0.0.1:9121/", allow_none=True).setData() if gestureObs._cali_flag else None, duration=1)
-    # gestureObs.register_callback(GestureObserver.FuncNameLists.THUMB_UP, bodyObs.stop_record_and_cali, duration=1)
     gestureObs.register_callback(GestureObserver.FuncNameLists.THUMB_UP, gestureObs.stop_record_and_cali, duration=1)
+    # gestureObs.register_callback(GestureObserver.FuncNameLists.THUMB_UP, lambda: client.ServerProxy("http://127.0.0.1:9121/", allow_none=True).setData() if gestureObs._cali_flag == True else None, duration=1)
+    # gestureObs.register_callback(GestureObserver.FuncNameLists.THUMB_UP, bodyObs.stop_record_and_cali, duration=1)
 
 
 
