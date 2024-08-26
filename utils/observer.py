@@ -129,7 +129,7 @@ class GestureObserver(Observer):
     class FuncNameLists(Enum):
         UNKONWN       = "UnKonwn"               # 未知手势
         OPEN          = "Open_Palm"             # 打开手掌
-        CLOSE         = "Closed_Palm"           # 关闭手掌
+        CLOSE         = "Closed_Fist"           # 关闭手掌
         POINTING_UP   = "Pointing_Up"           # 食指指天
         THUMB_DOWN    = "Thumb_Down"            # 大拇指向上
         THUMB_UP      = "Thumb_Up"              # 大拇指向下
