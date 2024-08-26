@@ -567,13 +567,14 @@ class GestureLandMarkDetector(LandMarkObservable):
         """
             异步检测,当上一帧图片未检测完成时,直接返回
         """
-        if self.input_flag:
-            mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=color_frame)
-            self.landmarker.recognize_async(mp_image, int(frame_timestamp_ms))    
-            self.input_color_image = color_frame
-            self.input_depth_image = depth_frame
-            self.input_timestamp   = frame_timestamp_ms
-            self.input_flag = False
+        # if self.input_flag:
+        # print("--")
+        mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=color_frame)
+        self.landmarker.recognize_async(mp_image, int(frame_timestamp_ms))    
+        self.input_color_image = color_frame
+        self.input_depth_image = depth_frame
+        self.input_timestamp   = frame_timestamp_ms
+        self.input_flag = False
 
 
     def callback(self, result: _GestureRecognizerResult, output_image: mp.Image, timestamp_ms: int):
