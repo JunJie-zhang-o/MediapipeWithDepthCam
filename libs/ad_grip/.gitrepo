@@ -1,0 +1,12 @@
+; DO NOT EDIT (unless you know what you are doing)
+;
+; This subdirectory is a git "subrepo", and this file is maintained by the
+; git-subrepo command. See https://github.com/ingydotnet/git-subrepo#readme
+;
+[subrepo]
+	remote = git@github.com:ViTai-Tech/AdaptiveGripper.git
+	branch = main
+	commit = 3fad5029a83195831bb69fb53dff60c23e51659a
+	parent = 3a7ad6e691b8f119a5c149ded9a51b4c3f33ad72
+	method = merge
+	cmdver = 0.4.9
