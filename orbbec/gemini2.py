@@ -3,15 +3,15 @@
 '''
 Author       : zhangjunjie jay.zhangjunjie@outlook.com
 Date         : 2024-08-07 22:20:06
-LastEditTime : 2024-08-14 00:01:59
-LastEditors  : zhangjunjie jay.zhangjunjie@outlook.com
+LastEditTime : 2024-09-20 15:38:44
+LastEditors  : jay jay.zhangjunjie@outlook.com
 Description  : 
 '''
 
 import cv2
 import numpy as np
-from libs.pyorbbecsdk import Config, OBAlignMode, OBFormat, OBSensorType, Pipeline
-from libs.pyorbbecsdk import Context,OBLogLevel
+from lib.pyorbbecsdk import Config, OBAlignMode, OBFormat, OBSensorType, Pipeline
+from lib.pyorbbecsdk import Context,OBLogLevel
 import atexit
 
 
