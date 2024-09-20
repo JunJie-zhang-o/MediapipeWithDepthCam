@@ -1,0 +1,5 @@
+{
+    "terminal.integrated.env.linux": {
+        "PYTHONPATH":"/home/jetson/00-CodeSpace/02-demo/mediapipe"
+    }
+}
