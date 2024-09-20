@@ -1,0 +1,12 @@
+; DO NOT EDIT (unless you know what you are doing)
+;
+; This subdirectory is a git "subrepo", and this file is maintained by the
+; git-subrepo command. See https://github.com/ingydotnet/git-subrepo#readme
+;
+[subrepo]
+	remote = git@github.com:ViTai-Tech/universal-robots.git
+	branch = main
+	commit = f11bf488441f7a270a47c4efaed42e5dd0b5b7c1
+	parent = b291c80079b3406abe22fa08c3ea8e3adddadd31
+	method = merge
+	cmdver = 0.4.9

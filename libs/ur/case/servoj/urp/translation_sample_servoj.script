@@ -1,0 +1,95 @@
+def translation_sample_servoj():
+  set_tool_communication(False, 115200, 0, 1, 1.5, 3.5)
+  set_tool_output_mode(0)
+  set_tool_digital_output_mode(0, 1)
+  set_tool_digital_output_mode(1, 1)
+  set_tool_voltage(0)
+  set_gravity([0.0, 0.0, 9.82])
+  set_target_payload(0.000000, [0.000000, 0.000000, 0.000000], [0.000000, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000])
+  set_tcp(p[0.0,0.0,0.0,0.0,0.0,0.0])
+  set_standard_analog_input_domain(0, 1)
+  set_standard_analog_input_domain(1, 1)
+  set_tool_analog_input_domain(0, 1)
+  set_tool_analog_input_domain(1, 1)
+  set_analog_outputdomain(0, 0)
+  set_analog_outputdomain(1, 0)
+  set_input_actions_to_default()
+  step_count_7cb15694_f9cd_4faf_a3b4_bc1211f4e819 = 0.0
+  thread Step_Counter_Thread_073ee154_f752_4a9d_9852_eb5fe2e85f7e():
+    while (True):
+      step_count_7cb15694_f9cd_4faf_a3b4_bc1211f4e819 = step_count_7cb15694_f9cd_4faf_a3b4_bc1211f4e819 + 1.0
+      sync()
+    end
+  end
+  run Step_Counter_Thread_073ee154_f752_4a9d_9852_eb5fe2e85f7e()
+  set_safety_mode_transition_hardness(1)
+  $ 1 "BeforeStart"
+  $ 2 "joints≔get_actual_joint_positions()"
+  global joints=get_actual_joint_positions()
+  $ 3 "write_output_boolean_register(0, False )"
+  write_output_boolean_register(0,  False  )
+  $ 4 "Wait: 0.01"
+  sleep(0.01)
+  $ 5 "popup('Registers reset, run PC code and then click Continue',title='Hi Daniel',blocking= True )"
+  popup("Registers reset, run PC code and then click Continue",title="Hi Daniel",blocking=  True  )
+  $ 6 "mode≔0"
+  global mode=0
+  $ 21 "Thread_1"
+  thread Thread_1():
+    while (True):
+      $ 22 "tmp≔p[0,0,0,0,0,0]"
+      global tmp=p[0,0,0,0,0,0]
+      $ 23 "Loop"
+      while (True):
+        $ 24 "Script: pose_register.script"
+        tmp[0]=read_input_float_register(0)
+        tmp[1]=read_input_float_register(1)
+        tmp[2]=read_input_float_register(2)
+        tmp[3]=read_input_float_register(3)
+        tmp[4]=read_input_float_register(4)
+        tmp[5]=read_input_float_register(5)
+        $ 25 "joints≔get_inverse_kin(p[tmp[0],tmp[1],tmp[2],tmp[3],tmp[4],tmp[5]],get_actual_joint_positions())"
+        global joints= get_inverse_kin (p[tmp[0],tmp[1],tmp[2],tmp[3],tmp[4],tmp[5]],get_actual_joint_positions())
+        $ 26 "sync()"
+        sync()
+        $ 27 "mode≔read_input_integer_register(0)"
+        global mode=read_input_integer_register(0)
+        $ 28 "sync()"
+        sync()
+      end
+    end
+  end
+  threadId_Thread_1 = run Thread_1()
+  while (True):
+    $ 7 "Robot Program"
+    $ 8 "write_output_boolean_register(0, True )"
+    write_output_boolean_register(0,  True  )
+    $ 9 "sync()"
+    sync()
+    $ 10 "Loop mode<3"
+    while (mode<3):
+      $ 11 "Loop mode≟1"
+      while (mode == 1):
+        $ 12 "MoveJ"
+        $ 13 "joints" "breakAfter"
+        movej(joints, a=1.3962634015954636, v=1.0471975511965976)
+        $ 14 "write_output_boolean_register(0, False )"
+        write_output_boolean_register(0,  False  )
+        $ 15 "sync()"
+        sync()
+      end
+      $ 16 "Loop mode≟2"
+      while (mode == 2):
+        $ 17 "servoj(joints, 0, 0, 0.002, 0.2, 2000)"
+        servoj(joints, 0, 0, 0.002, 0.2, 2000)
+      end
+      $ 18 "Loop mode≟3"
+      while (mode == 3):
+        $ 19 "Halt"
+        halt
+      end
+    end
+    $ 20 "sync()"
+    sync()
+  end
+end
