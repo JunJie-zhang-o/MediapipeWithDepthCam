@@ -6,7 +6,7 @@
 [subrepo]
 	remote = git@github.com:ViTai-Tech/universal-robots.git
 	branch = main
-	commit = f11bf488441f7a270a47c4efaed42e5dd0b5b7c1
-	parent = b291c80079b3406abe22fa08c3ea8e3adddadd31
+	commit = b87475b6ea30423212f319b1b1198cd90b0ae4c3
+	parent = 161d2f0d26d54fdbfc5b2c5e641752f07e766ae2
 	method = merge
 	cmdver = 0.4.9
