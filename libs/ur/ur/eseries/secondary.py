@@ -7,9 +7,9 @@
 
 import struct
 
-from ur.eseries.datastream import DataStreamParse, URDataClass
-from ur.eseries.datastruct import *
-from ur.eseries.primary import Primary
+from .datastream import DataStreamParse, URDataClass
+from .datastruct import *
+from .primary import Primary
 
 
 class Secondary(Primary):

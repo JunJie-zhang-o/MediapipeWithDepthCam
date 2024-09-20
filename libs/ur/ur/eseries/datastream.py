@@ -3,8 +3,8 @@
 '''
 Author       : Jay jay.zhangjunjie@outlook.com
 Date         : 2024-07-04 15:37:12
-LastEditTime : 2024-08-28 21:47:50
-LastEditors  : Jay jay.zhangjunjie@outlook.com
+LastEditTime : 2024-09-20 16:12:10
+LastEditors  : jay jay.zhangjunjie@outlook.com
 Description  : Define Primary And Secondary Port Data Struct
 '''
 
@@ -23,7 +23,8 @@ from threading import Thread
 
 # from ur.eseries.datastruct import *
 # import ur.eseries.datastruct
-from ur.eseries import datastruct
+# from ur.eseries import datastruct
+from . import datastruct
 
 
 def getAllURDatacls():# -> list:

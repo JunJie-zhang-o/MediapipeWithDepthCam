@@ -3,19 +3,19 @@
 '''
 Author       : Jay jay.zhangjunjie@outlook.com
 Date         : 2024-07-04 10:28:10
-LastEditTime : 2024-07-15 14:29:29
-LastEditors  : Jay jay.zhangjunjie@outlook.com
+LastEditTime : 2024-09-20 16:08:02
+LastEditors  : jay jay.zhangjunjie@outlook.com
 Description  : 
 '''
 
 
-from ur.eseries.dash import Dashboard
-from ur.eseries.datastruct import *
-from ur.eseries.interpreter import Interpreter
-from ur.eseries.primary import Primary, PrimaryMonitor
-from ur.eseries.rtde import RTDE, ConfigFile, Recipe
-from ur.eseries.script import *
-from ur.eseries.secondary import Secondary, SecondaryMonitor
+from .dash import Dashboard
+from .datastruct import *
+from .interpreter import Interpreter
+from .primary import Primary, PrimaryMonitor
+from .rtde import RTDE, ConfigFile, Recipe
+from .script import *
+from .secondary import Secondary, SecondaryMonitor
 
 
 class URERobot:

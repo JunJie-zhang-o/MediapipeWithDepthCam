@@ -3,8 +3,8 @@
 '''
 Author       : Jay jay.zhangjunjie@outlook.com
 Date         : 2024-07-07 20:56:17
-LastEditTime : 2024-07-22 14:35:46
-LastEditors  : Jay jay.zhangjunjie@outlook.com
+LastEditTime : 2024-09-20 16:11:55
+LastEditors  : jay jay.zhangjunjie@outlook.com
 Description  : 
 '''
 
@@ -14,8 +14,8 @@ import struct
 
 from loguru import logger
 
-from ur.eseries.datastream import DataStreamParse, URDataClass
-from ur.eseries.datastruct import *
+from .datastream import DataStreamParse, URDataClass
+from .datastruct import *
 
 
 class Primary:

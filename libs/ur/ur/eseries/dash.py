@@ -3,8 +3,8 @@
 '''
 Author       : Jay jay.zhangjunjie@outlook.com
 Date         : 2024-07-04 10:46:44
-LastEditTime : 2024-08-28 21:43:44
-LastEditors  : Jay jay.zhangjunjie@outlook.com
+LastEditTime : 2024-09-20 16:11:32
+LastEditors  : jay jay.zhangjunjie@outlook.com
 Description  : 
 '''
 
@@ -250,7 +250,7 @@ class Dashboard:
         return True if ret == "Added log message" else False
 
     
-    def isProgramSaved(self) -> tuple[bool, str]:
+    def isProgramSaved(self) :
         """
             return the save state of the active program and path to loaded program file.
         """
@@ -259,7 +259,7 @@ class Dashboard:
         return saved == "true", programName
 
     
-    def programState(self) -> tuple[ProgramState, str]:
+    def programState(self) :
         """
             return the state of the active program and path to loaded program file, or Stopped if no program os loaded.
         """
