@@ -3,8 +3,8 @@
 '''
 Author       : Jay jay.zhangjunjie@outlook.com
 Date         : 2024-07-24 13:44:35
-LastEditTime : 2024-09-20 15:26:52
-LastEditors  : Jay jay.zhangjunjie@outlook.com
+LastEditTime : 2024-09-20 16:15:19
+LastEditors  : jay jay.zhangjunjie@outlook.com
 Description  : Orbbec+Mediapipe+摇操作
 '''
 
@@ -21,16 +21,14 @@ import sys,pathlib
 
 import zmq
 
-from examples.servoj.fliter import BandLimiter, DValueLimiter
-from examples.servoj.rtplot import RealTimePlot
-from examples.servoj.smoother import MovingAverage3D
-from PyQt5.QtWidgets import QApplication, QMainWindow
+from  servoj_utils.fliter import BandLimiter, DValueLimiter
+from servoj_utils.smoother import MovingAverage3D
 
 sys.path.append(f"{pathlib.Path(__file__).parent.parent.parent}")
 
 from threading import Event, Thread
 import time
-from ur.eseries import URERobot, ConfigFile
+from libs.ur.ur.eseries import URERobot, ConfigFile
 
 
 # import numpy as np
@@ -103,7 +101,7 @@ class Servoj():
 
         self.rtde = self.robot.createRTDEInterface()
 
-        conf = ConfigFile('./examples/rtde_data_example.xml')
+        conf = ConfigFile('libs/ur/case/servoj/rtde_data_example.xml')
         self.state_names, self.state_types = conf.get_recipe('state')  # Define recipe for access to robot output ex. joints,tcp etc.
         self.setp_names, self.setp_types = conf.get_recipe('setp')  # Define recipe for access to robot input
         self.watchdog_names, self.watchdog_types= conf.get_recipe('watchdog')
@@ -249,11 +247,19 @@ if __name__ == "__main__":
 
     # suber = Suber("tcp://192.168.1.2:5556")
     # suber = Suber("tcp://192.168.40.241:5556")
-    suber = Suber("tcp://192.168.1.7:5556")
+    # suber = Suber("tcp://192.168.1.7:5556")
+
+    puber = zmq.Context().socket(zmq.PUB)
+    puber.bind("tcp://*:5557")
+    puber.set_hwm(100)
+
+    
+    suber = Suber("tcp://127.0.0.1:5556")
+
     suber.start()
 
-    app = QApplication(sys.argv)
-    rtPlot = RealTimePlot("数据", 100)
+    # app = QApplication(sys.argv)
+    # rtPlot = RealTimePlot("数据", 100)
 
     # HOME_POSE = [0.01982, -0.36266, 0.09777, 3.141, -0.052, 0]
     HOME_POSE = [0.0833, -0.46700, 0.10617, -2.2214, -2.2214, 0]
@@ -271,10 +277,10 @@ if __name__ == "__main__":
     server.register_function(setData)
     Thread(target=server.serve_forever, daemon=True, name="XMLRPC Server").start()
     
-    rtPlot.addSubWindow("X", lambda: (float(suber.timestamp), filter.fliter(float(suber.message.split(",")[0]), 0, 0)[0]), 1,1)
-    rtPlot.addSubWindow("Y", lambda: (float(suber.timestamp), filter1.fliter(float(suber.message.split(",")[1]),0,0)[0]), 2,1)
-    rtPlot.addSubWindow("Z", lambda: (float(suber.timestamp), filter2.fliter(float(suber.message.split(",")[2]),0,0)[0]), 3,1)
-    rtPlot.show()
+    # rtPlot.addSubWindow("X", lambda: (float(suber.timestamp), filter.fliter(float(suber.message.split(",")[0]), 0, 0)[0]), 1,1)
+    # rtPlot.addSubWindow("Y", lambda: (float(suber.timestamp), filter1.fliter(float(suber.message.split(",")[1]),0,0)[0]), 2,1)
+    # rtPlot.addSubWindow("Z", lambda: (float(suber.timestamp), filter2.fliter(float(suber.message.split(",")[2]),0,0)[0]), 3,1)
+    # rtPlot.show()
     # sys.exit(app.exec_())
     sj = Servoj(ip=ip)
     initPose = sj.initRobotState(HOME_POSE)
@@ -309,11 +315,12 @@ if __name__ == "__main__":
                 # diff = [f"{sp[i]-HOME_POSE[i]:f}" for i in range(6)]
                 # print(diff)
                 sj.addPoseToServoj(sp)
+                puber.send_string(f"{x},{y},{z}") 
 
 
 
         time.sleep(0.03)
-    sys.exit(app.exec_())
+    # sys.exit(app.exec_())
 
 
 
