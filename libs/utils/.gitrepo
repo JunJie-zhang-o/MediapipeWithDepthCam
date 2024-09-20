@@ -1,0 +1,12 @@
+; DO NOT EDIT (unless you know what you are doing)
+;
+; This subdirectory is a git "subrepo", and this file is maintained by the
+; git-subrepo command. See https://github.com/ingydotnet/git-subrepo#readme
+;
+[subrepo]
+	remote = git@github.com:ViTai-Tech/utils.git
+	branch = main
+	commit = 2c3b0930f61f7a14367026dfdcc52a6db41d60a1
+	parent = 4145becdd5e8811596df6ed0dba6afde6f1ebbaf
+	method = merge
+	cmdver = 0.4.9
