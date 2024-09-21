@@ -2,6 +2,7 @@
 
 
 from abc import ABC, abstractmethod
+from copy import deepcopy
 from threading import Thread
 import time
 from typing import Dict
@@ -106,6 +107,9 @@ class ActionTrigger:
             if t - dbT >= duration:
                 callback()
                 if self.name == GestureObserver.FuncNameLists.INCREASE.value:
+                    # print(self.name, t, dbT, v, data)
+                    pass
+                if self.name == GestureObserver.FuncNameLists.REDUCE.value:
                     # print(self.name, t, dbT, v, data)
                     pass
                 self._t.update({k: t})
@@ -338,7 +342,6 @@ class GestureObserver(Observer):
             print("Start Record And Cali Gesture")
             self._cali_flag = True
             self._record_start_pose = None
-            client.ServerProxy("http://127.0.0.1:9121/", allow_none=True).startPushData()
 
     def stop_record_and_cali(self):
         if self._cali_flag == True:

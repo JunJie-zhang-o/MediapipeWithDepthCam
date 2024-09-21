@@ -73,5 +73,7 @@ class DValueLimiter(Limiter):
 
         diff = abs(data - self._lastData)
         ret = self._lastData  if diff >= self._maxDiffThreshold else data
+        if diff >= self._maxDiffThreshold:
+            print("+++++++++++++++++")
         self._lastData = ret
         return ret

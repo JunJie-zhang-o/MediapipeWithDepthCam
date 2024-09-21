@@ -3,7 +3,7 @@
 '''
 Author       : jay.jetson jay.zhangjunjie@outlook.com
 Date         : 2024-09-04 03:23:09
-LastEditTime : 2024-09-20 16:00:08
+LastEditTime : 2024-09-20 16:41:54
 LastEditors  : jay jay.zhangjunjie@outlook.com
 Description  : 
 '''
@@ -32,7 +32,8 @@ np.set_printoptions(suppress=True)
 if __name__ == '__main__':
 
 
-    suber = Suber("tcp://127.0.0.1:5557")
+    suber = Suber("tcp://127.0.0.1:5556")
+    # suber = Suber("tcp://127.0.0.1:5557")
 
     app = QApplication(sys.argv)
 

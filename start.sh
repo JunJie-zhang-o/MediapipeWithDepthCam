@@ -36,7 +36,8 @@ trap cleanup EXIT
 # 请在运行前先启动机器人程序
 start_program "main.py"
 start_program "servoj.py"
-exec_program "./rtplot.py"
+start_program "libs/utils/plot/gripper_bar_symmetric.py"
+# exec_program "./rtplot.py"
 
 
 # 等待所有后台进程完成
