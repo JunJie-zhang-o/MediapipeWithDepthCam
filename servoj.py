@@ -3,7 +3,7 @@
 '''
 Author       : Jay jay.zhangjunjie@outlook.com
 Date         : 2024-07-24 13:44:35
-LastEditTime : 2024-09-20 16:15:19
+LastEditTime : 2024-09-21 16:10:32
 LastEditors  : jay jay.zhangjunjie@outlook.com
 Description  : Orbbec+Mediapipe+摇操作
 '''
@@ -16,6 +16,7 @@ Description  : Orbbec+Mediapipe+摇操作
 
 """
 
+import signal
 import sys,pathlib
 
 
@@ -29,6 +30,7 @@ sys.path.append(f"{pathlib.Path(__file__).parent.parent.parent}")
 from threading import Event, Thread
 import time
 from libs.ur.ur.eseries import URERobot, ConfigFile
+import atexit
 
 
 # import numpy as np
@@ -75,7 +77,7 @@ class Suber(Thread):
                 self.internal = t2 - t1
                 self.timestamp += self.internal
                 t1 = t2
-                print(f"Received message on topic {self.topic}: {message} | timestamp:{self.timestamp} | internal:{self.internal}")
+                # print(f"Received message on topic {self.topic}: {message} | timestamp:{self.timestamp} | internal:{self.internal}")
                 self.message = message
             except zmq.Again:
                 pass
@@ -193,22 +195,26 @@ class Filter:
         self.average = MovingAverage3D(windowsSize=5)
 
         # 数据波动限制
-        self.xLimiter = DValueLimiter(maxDiffThreshold=20)
-        self.yLimiter = DValueLimiter(maxDiffThreshold=20)
-        self.zLimiter = DValueLimiter(maxDiffThreshold=20)
+        self.xLimiter = DValueLimiter(maxDiffThreshold=0.025)
+        self.yLimiter = DValueLimiter(maxDiffThreshold=0.1)
+        self.zLimiter = DValueLimiter(maxDiffThreshold=0.025)
+        # self.xLimiter = DValueLimiter(maxDiffThreshold=20)
+        # self.yLimiter = DValueLimiter(maxDiffThreshold=20)
+        # self.zLimiter = DValueLimiter(maxDiffThreshold=20)
         # 区域保护
         self.xAreaLimiter = BandLimiter(highThreshold=0.3, lowThreshold=-0.04)
         self.yAreaLimiter = BandLimiter(highThreshold=-0.36, lowThreshold=-0.69)
-        self.zAreaLimiter = BandLimiter(highThreshold=0.3, lowThreshold=0.06)
+        self.zAreaLimiter = BandLimiter(highThreshold=0.3, lowThreshold=0.005)
 
         self._dbFlag = False
     
     def fliter(self, x, y, z):
         # 做一次平滑
-        result = self.average.handle(x, y, z)
+        # result = self.average.handle(x, y, z)
+        result = x, y, z
         if result is not None:
             (x, y, z) = result
-            # 滤掉跳动比较大的数据
+            # 滤掉跳动比较大的数据,但是无法区分是手部速度移动快还是
             x = self.xLimiter.limit(x)
             y = self.yLimiter.limit(y)
             z = self.zLimiter.limit(z)
@@ -220,8 +226,13 @@ class Filter:
             _y = self.yAreaLimiter.limit(_y)
             _z = self.zAreaLimiter.limit(_z)
             if self._dbFlag:
-                self._x, self._y, self._z = _x, _y, _z
+                print("----------------------------------")
+                print(f"{self._x},{self._y},{self._z}")
+                print(f"{_x},{_y},{_z}")
+                print("----------------------------------")
+                # self._x, self._y, self._z = _x, _y, _z
                 self._dbFlag = False
+            print(f"---{x},{y},{z} | {_x},{_y},{_z}")
             return _x, _y, _z
 
     def setDBFlag(self):
@@ -282,10 +293,12 @@ if __name__ == "__main__":
 
     from xmlrpc.server import SimpleXMLRPCServer
     def setData():
+        # 解决启停时机械臂跳动问题， 
         filter.setDBFlag()
+        suber.message = "0,0,0"     # 实际为 检测端下发的数据
         filter1.setDBFlag()
         filter2.setDBFlag()
-    server = SimpleXMLRPCServer(("0.0.0.0", 9120), allow_none=True)
+    server = SimpleXMLRPCServer(("0.0.0.0", 9121), allow_none=True)
     server.register_function(setData)
     Thread(target=server.serve_forever, daemon=True, name="XMLRPC Server").start()
     
@@ -316,12 +329,15 @@ if __name__ == "__main__":
             continue
 
         if values is not None:
-
+            print(f"value:{values}")
             [trsfX, trsfY, trsfZ] = values.split(",")
 
-            dx = float(trsfZ) * 0.003
-            dy = float(trsfX) * 0.003
-            dz = float(trsfY) * 0.003  # 1
+            # dx = float(trsfZ) * 0.003
+            # dy = float(trsfX) * 0.003
+            # dz = float(trsfY) * 0.003  # 1
+            dx = float(trsfZ) * 0.0005
+            dy = float(trsfX) * -0.001
+            dz = float(trsfY) * -0.0005  # 1
 
             ret = filter.fliter(dx, dy, dz)
             if ret is not None:
@@ -331,18 +347,15 @@ if __name__ == "__main__":
                 sp[1] = y
                 sp[2] = z
 
-                # sp = [float(trsfX)*flag, float(trsfY)*flag, 0, 0, 0, 0]
-                # sp = [float(trsfX)*flag, float(trsfZ)*0.1, float(trsfY)*-flag, 0, 0, 0]
+
                 print(sp)
-                # diff = [f"{sp[i]-HOME_POSE[i]:f}" for i in range(6)]
-                # print(diff)
                 sj.addPoseToServoj(sp)
                 puber.send_string(f"{x},{y},{z}") 
 
 
 
         time.sleep(0.03)
-    # sys.exit(app.exec_())
+
 
 
 
