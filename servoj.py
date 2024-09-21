@@ -293,6 +293,16 @@ if __name__ == "__main__":
         t1 = time.time()
         values = suber.message
 
+        # 解决起停时的抖动
+        if values == "0,0,0":
+            filter._x = sp[0]
+            filter._y = sp[1]
+            filter._z = sp[2]
+            filter.xLimiter._lastData = None
+            filter.yLimiter._lastData = None
+            filter.zLimiter._lastData = None
+            continue
+
         if values is not None:
 
             [trsfX, trsfY, trsfZ] = values.split(",")
