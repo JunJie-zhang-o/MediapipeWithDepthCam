@@ -105,8 +105,14 @@ class Servoj():
         self.state_names, self.state_types = conf.get_recipe('state')  # Define recipe for access to robot output ex. joints,tcp etc.
         self.setp_names, self.setp_types = conf.get_recipe('setp')  # Define recipe for access to robot input
         self.watchdog_names, self.watchdog_types= conf.get_recipe('watchdog')
-
+        self._initPose = None
         self._initRTDEParams()
+
+        atexit.register( self.stopServoj)
+        def _exit(signum, frame):
+            self.stopServoj()
+            exit()
+        signal.signal(signal.SIGTERM, _exit)
 
 
     def _initRTDEParams(self):
@@ -129,6 +135,7 @@ class Servoj():
 
 
     def initRobotState(self, initPose) -> list:
+        self._initPose = [i for i in initPose]
         list_to_setp(self.setp, initPose)  # changing initial pose to setp
         self.setp.input_bit_registers0_to_31 = 0
         self.rtde.send(self.setp) # sending initial pose
@@ -163,6 +170,11 @@ class Servoj():
     def addPoseToServoj(self, pose):
         list_to_setp(self.setp, pose)
         self.rtde.send(self.setp)
+
+    def stopServoj(self):
+        self.watchdog.input_int_register_0 = 3
+        self.rtde.send(self.watchdog)
+        self.addPoseToServoj(self._initPose)
 
 
 
