@@ -582,10 +582,10 @@ class GestureLandMarkDetector(LandMarkObservable):
             异步检测回调,当检测完成后会调用
         """
         # self.result = result
-        self._fps_handler.refresh()
         # print(f"Gesture Detect:{self._fps_handler.fps} | {timestamp_ms}, {self.input_timestamp}")
         
         if len(result.hand_world_landmarks) > 0:
+            self._fps_handler.refresh()
             self.input_timestamp = timestamp_ms
             thumb_tip = result.hand_world_landmarks[0][4]
             middle_finger_tip = result.hand_world_landmarks[0][8]
