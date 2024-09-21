@@ -150,6 +150,7 @@ class GestureObserver(Observer):
         self.wristPose = None
         self._cali_flag = False  
         self._record_start_pose = None
+        self._last_diff = None
         self.puber = zmq.Context().socket(zmq.PUB)
         self.puber.bind("tcp://*:5556")
         self.puber.set_hwm(100)
@@ -224,6 +225,7 @@ class GestureObserver(Observer):
                 #     t = 0
             if self._cali_flag == False:
                 self.puber.send_string(f"0,0,0") 
+                self._last_diff = None
                 return 
             
             # 检测手腕数据
@@ -252,8 +254,27 @@ class GestureObserver(Observer):
             diff = [int(self.wristPose[i]) - int(self._record_start_pose[i]) for i in range(3)]
             # print(self.wristPose[2], self._record_start_pose[2])
             # print(int(self.wristPose[2]) - int(self._record_start_pose[2]))
+
+
+            # if self._last_diff is None:
+            #     self._last_diff = diff
+            # else:
+            # 记录上次的数据
+            if self._last_diff is not None:
+                _dx = diff[0] - self._last_diff[0]
+                _dy = diff[1] - self._last_diff[1]
+                _dz = diff[2] - self._last_diff[2]
+                _MAX_DIFF = 150
+                if abs(_dx) > _MAX_DIFF:
+                    diff[0] = self._last_diff[0]
+                if abs(_dy) > _MAX_DIFF:
+                    diff[1] = self._last_diff[1]
+                if abs(_dz) > _MAX_DIFF:
+                    diff[2] = self._last_diff[2]
+            
             print("Gesture diff", diff[0], diff[1], diff[2])
             self.puber.send_string(f"{diff[0]},{diff[1]},{diff[2]}") 
+            self._last_diff = deepcopy(diff)
                 
 
             """
@@ -323,8 +344,9 @@ class GestureObserver(Observer):
         if self._cali_flag == True:
             print("Stop Record And Cali Gesture")
             self._cali_flag = False
-            # client.ServerProxy("http://127.0.0.1:9121/", allow_none=True).setData()
-            client.ServerProxy("http://127.0.0.1:9121/", allow_none=True).stopPushData()
+            # 目前该调用无实际作用，只是为了查看数据处理时机
+            client.ServerProxy("http://127.0.0.1:9121/", allow_none=True).setData()
+
                         
 
 
