@@ -78,19 +78,17 @@ if __name__ == "__main__":
     # gestureObs.register_callback(GestureObserver.FuncNameLists.INCREASE, lambda: print("INC") if bodyObs._cali_flag == True else None, duration=2, volatuationData=0.05)
     # gestureObs.register_callback(GestureObserver.FuncNameLists.REDUCE, lambda:print("DEC") if bodyObs._cali_flag == True else None, duration=2, volatuationData=0.05)
 
-    gestureObs.register_callback(GestureObserver.FuncNameLists.INCREASE, lambda: client.ServerProxy("http://127.0.0.1:9120/", allow_none=True).open_no_block() if gestureObs._cali_flag == True else None, duration=1.5, volatuationData=0.06)
-    gestureObs.register_callback(GestureObserver.FuncNameLists.REDUCE, lambda: client.ServerProxy("http://127.0.0.1:9120/", allow_none=True).adaptive_close_no_block() if gestureObs._cali_flag == True else None, duration=1.5, volatuationData=0.06)
-    # gestureObs.register_callback(GestureObserver.FuncNameLists.OPEN, lambda: client.ServerProxy("http://127.0.0.1:9120/", allow_none=True).open_no_block() if gestureObs._cali_flag == True else None, duration=1.5)
-    # gestureObs.register_callback(GestureObserver.FuncNameLists.CLOSE, lambda: client.ServerProxy("http://127.0.0.1:9120/", allow_none=True).adaptive_close_no_block() if gestureObs._cali_flag == True else None, duration=1.5)
+    gestureObs.register_callback(GestureObserver.FuncNameLists.INCREASE, lambda: client.ServerProxy("http://127.0.0.1:9120/", allow_none=True).open(False) if gestureObs._cali_flag == True else None, duration=1.5, volatuationData=0.06)
+    gestureObs.register_callback(GestureObserver.FuncNameLists.REDUCE, lambda: client.ServerProxy("http://127.0.0.1:9120/", allow_none=True).adaptiveClose(False) if gestureObs._cali_flag == True else None, duration=1.5, volatuationData=0.06)
+
 
     # 比yeah开始,牛
     # gestureObs.register_callback(GestureObserver.FuncNameLists.VICTORY, bodyObs.start_record_and_cali, duration=2.5)
     gestureObs.register_callback(GestureObserver.FuncNameLists.VICTORY, gestureObs.start_record_and_cali, duration=2.5)
 
-    # gestureObs.register_callback(GestureObserver.FuncNameLists.THUMB_UP, lambda : client.ServerProxy("http://192.168.40.216:9120/", allow_none=True).setData() if bodyObs._cali_flag else None, duration=1)
-    gestureObs.register_callback(GestureObserver.FuncNameLists.THUMB_UP, gestureObs.stop_record_and_cali, duration=1)
-    # gestureObs.register_callback(GestureObserver.FuncNameLists.THUMB_UP, lambda: client.ServerProxy("http://127.0.0.1:9121/", allow_none=True).setData() if gestureObs._cali_flag == True else None, duration=1)
-    # gestureObs.register_callback(GestureObserver.FuncNameLists.THUMB_UP, bodyObs.stop_record_and_cali, duration=1)
+
+    gestureObs.register_callback(GestureObserver.FuncNameLists.LOVE, gestureObs.stop_record_and_cali, duration=1)
+
 
 
 
@@ -155,15 +153,17 @@ if __name__ == "__main__":
                     pass
             if gestureMarker.output_image is not None:
                 fAHandle.updata(handWorldLandmarks2List(gestureMarker.result.hand_world_landmarks.toList()))
-                # drawFingerAngleOnImage(gestureMarker.output_image, fAHandle.drawFingerAngleDatas)
-                fAHandle.drawAllFingerAngleOnImage(gestureMarker.output_image, gestureMarker.result.hand_landmarks.getAllJointPoint())
+                
+                # fAHandle.drawAllFingerAngleOnImage(gestureMarker.output_image, gestureMarker.result.hand_landmarks.getAllJointPoint())
                 cv2.putText(gestureMarker.output_image, f"Dis:{round(gestureMarker.get_thumb_indexfinger_tip_dis(),3)}m", (10,60), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,0,0), 1, cv2.LINE_AA)
                 cv2.putText(gestureMarker.output_image, f"Gesture:{gestureMarker.result.gestures.category_name}", (10,90), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,0,0), 1, cv2.LINE_AA)
+                cv2.putText(gestureMarker.output_image, f"State:{gestureObs._cali_flag}", (10,120), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,0,0), 1, cv2.LINE_AA)
                 cv2.imshow("gesture", gestureMarker.output_image)
 
             # if poseMarker.output_image is not None and gestureMarker.output_image is not None:
             #     downImage = np.hstack((poseMarker.output_image, gestureMarker.output_image))
             #     images = np.vstack((images, downImage))
+            cv2.putText(images, f"State:{gestureObs._cali_flag}", (10,90), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,0,0), 1, cv2.LINE_AA)
             cv2.namedWindow('RealSense', cv2.WINDOW_AUTOSIZE)
             cv2.imshow('RealSense', images)
             key = cv2.waitKey(1)
