@@ -3,8 +3,8 @@
 '''
 Author       : Jay jay.zhangjunjie@outlook.com
 Date         : 2024-08-20 11:28:41
-LastEditTime : 2024-08-20 17:58:10
-LastEditors  : Jay jay.zhangjunjie@outlook.com
+LastEditTime : 2024-09-21 14:29:19
+LastEditors  : jay jay.zhangjunjie@outlook.com
 Description  : 中心对称的夹爪colorbar
 '''
 from matplotlib.colors import LinearSegmentedColormap
@@ -53,9 +53,9 @@ ax.set_title('Dynamic Colorbar', fontsize=14, pad=10)
 # 更新函数
 def update(value):
     
-    v = ServerProxy("http://192.168.1.7:9120/", allow_none=True).position()
+    v = ServerProxy("http://127.0.0.1:9120/", allow_none=True).position()
     print(v)
-    value = (50 - int(v)) / 2
+    value = (50 - v) / 2
     # 设置 colorbar 的新 clim 范围
     sm.set_clim(vmin=vmin, vmax=vmax)
     
@@ -75,7 +75,7 @@ def update(value):
     cbar.update_normal(sm)
 
     # 更新标题，显示当前 value
-    ax.set_title(f'Gripper Position: {int(value)}', fontsize=14, pad=10)
+    ax.set_title(f'Gripper Position: {round(value*2, 4)}mm', fontsize=14, pad=10)
 
 # 创建动画
 ani = animation.FuncAnimation(fig, update, frames=np.linspace(25, 0, 100), interval=200, blit=False)
