@@ -561,6 +561,30 @@ class GestureLandMarkDetector(LandMarkObservable):
             dis = math.sqrt((tx - mx)**2+(ty-my)**2+(tz-mz)**2)
             return dis
         return None
+    
+
+    def get_thumb_indexfinger_tip_dis_from_depth_frame(self, cam):
+        def checkPixelValid(data):
+            # 检测归一化的数据是否超出图像区域, #!当躯干检测时,会推理出某个点在图像外的情况 
+            if data["x"] > 1 or data["x"] < 0:
+                return False
+            if data["y"] > 1 or data["y"] < 0:
+                return False
+            return True
+        dis = None
+        if self.result is not None:
+            _height, _width = self.output_image.shape[:2]
+            thump_tip = self.result.getKeyPointData(HandIndex.THUMP_TIP)
+            index_finger_tip = self.result.getKeyPointData(HandIndex.INDEX_FINGER_TIP)
+            thump_tip_xy = [int(thump_tip["x"]*_width), int(thump_tip["y"]*_height)]
+            index_finger_tip_xy = [int(index_finger_tip["x"]*_width), int(index_finger_tip["y"]*_height)]
+            act_thump_tip_xy = cam.get_actual_pose(thump_tip_xy[0], thump_tip_xy[1], cam.get_depth_value(thump_tip_xy[0], thump_tip_xy[1], self.input_depth_image))
+            acat_index_finger_tip_xy = cam.get_actual_pose(index_finger_tip_xy[0], index_finger_tip_xy[1], cam.get_depth_value(index_finger_tip_xy[0], index_finger_tip_xy[1], self.input_depth_image))
+            [tx, ty, tz] = act_thump_tip_xy
+            [mx, my, mz] = acat_index_finger_tip_xy
+            dis = math.sqrt((tx - mx)**2+(ty-my)**2+(tz-mz)**2)
+            return dis
+        return None
 
 
     def detect_async(self, color_frame, depth_frame,frame_timestamp_ms=int(time.time() * 1000)):
