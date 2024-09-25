@@ -3,6 +3,7 @@
 
 from abc import ABC, abstractmethod
 from copy import deepcopy
+import logging
 from threading import Thread
 import time
 from typing import Dict
@@ -12,7 +13,12 @@ from xmlrpc import client
 import zmq
 
 from utils.landmark import GestureLandMarkDetector, GestureRecognizerResultData
+from utils.logger import RemoteTCPServerLogHandler
 
+
+logger = logging.getLogger('socket_logger')
+# logger.addHandler(RemoteTCPServerLogHandler("192.168.40.216"))
+logger.setLevel(logging.DEBUG)
 
 class Observer(ABC):
 
@@ -77,9 +83,10 @@ class ActionTrigger:
             callback = self._callbacks.get(k)
             duration = self._duration.get(k)
             volatuationData = self._volatuationData.get(k)
-            
             # 先判断数值是否波动,波动范围内不需要处理
             data = self._data.get(k, None)
+            if self.name == GestureObserver.FuncNameLists.INCREASE.value or self.name == GestureObserver.FuncNameLists.REDUCE.value:
+                logger.critical(f"Name:{self.name}, duration:{duration}, volatuationData:{volatuationData} | t:{t}, v:{v}, diffIsPositiveValue:{diffIsPositiveValue}")
             if self.name == GestureObserver.FuncNameLists.INCREASE.value:
                 # print(self.name, data)
                 pass
@@ -87,12 +94,20 @@ class ActionTrigger:
                 diff = v - data
                 if abs(diff) <= volatuationData: 
                     # self._t[k] = None
+                    if self.name == GestureObserver.FuncNameLists.INCREASE.value or self.name == GestureObserver.FuncNameLists.REDUCE.value:
+                        logger.debug(f"{self.name} diff <= volatuationData | diff:{diff} data:{data}")
                     continue                   
                 # 绝对值只能判断是否波动,加上差值的判断
                 if diffIsPositiveValue:
-                    if diff < 0: continue
+                    if diff < 0: 
+                        if self.name == GestureObserver.FuncNameLists.INCREASE.value or self.name == GestureObserver.FuncNameLists.REDUCE.value:
+                            logger.debug(f"{self.name} diff < 0 and diffIsPositiveValue > 0")
+                        continue
                 if not diffIsPositiveValue:
-                    if diff > 0: continue
+                    if diff > 0: 
+                        if self.name == GestureObserver.FuncNameLists.INCREASE.value or self.name == GestureObserver.FuncNameLists.REDUCE.value:
+                            logger.debug(f"{self.name} diff > 0 and diffIsPositiveValue < 0")
+                        continue
 
             
             # 持续时间内,记录首次触发的时间和数据
@@ -101,6 +116,8 @@ class ActionTrigger:
                 self._t.update({k: t})
                 if v is not None:
                     self._data.update({k: v})
+                if self.name == GestureObserver.FuncNameLists.INCREASE.value or self.name == GestureObserver.FuncNameLists.REDUCE.value:
+                    logger.info(f"{self.name} record | t:{t} v:{v}")
                 continue
             
             # 时间和数据都满足,判断是否为持续触发和满足时间周期
@@ -115,10 +132,14 @@ class ActionTrigger:
                 self._t.update({k: t})
                 self._data.update({k: v})
                 trigger_result.append(True)
+                if self.name == GestureObserver.FuncNameLists.INCREASE.value or self.name == GestureObserver.FuncNameLists.REDUCE.value:
+                    logger.info(f"{self.name} callback | t:{t} v:{v} result:{True}")
         return trigger_result
                 
 
     def reset(self):
+        if self.name == GestureObserver.FuncNameLists.INCREASE.value or self.name == GestureObserver.FuncNameLists.REDUCE.value:
+            logger.debug(f"name:{self.name} reset")
         for k in self._callbacks.keys():
             self._t.update({k: None})
             self._data.update({k: None})
@@ -212,10 +233,12 @@ class GestureObserver(Observer):
                 if self._db.get("dis", None) is None:
                     self._db["dis"] = dis
                     # continue 
+                    logger.debug("db dis is None")
                     return 
                 # db_dis = self._db.get("dis")
                 # diff = dis - db_dis
                 # if diff > 0:
+                # 打开和关闭的处理
                 ret = self._callbackFuncDict.get(self.FuncNameLists.INCREASE.value).trigger(now, dis, diffIsPositiveValue=True)
                 if True in ret:
                     self._callbackFuncDict.get(self.FuncNameLists.REDUCE.value).reset()
