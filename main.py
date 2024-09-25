@@ -78,8 +78,8 @@ if __name__ == "__main__":
     # gestureObs.register_callback(GestureObserver.FuncNameLists.INCREASE, lambda: print("INC") if bodyObs._cali_flag == True else None, duration=2, volatuationData=0.05)
     # gestureObs.register_callback(GestureObserver.FuncNameLists.REDUCE, lambda:print("DEC") if bodyObs._cali_flag == True else None, duration=2, volatuationData=0.05)
 
-    gestureObs.register_callback(GestureObserver.FuncNameLists.INCREASE, lambda: client.ServerProxy("http://127.0.0.1:9120/", allow_none=True).open(False) if gestureObs._cali_flag == True else None, duration=1.5, volatuationData=0.06)
-    gestureObs.register_callback(GestureObserver.FuncNameLists.REDUCE, lambda: client.ServerProxy("http://127.0.0.1:9120/", allow_none=True).adaptiveClose(False) if gestureObs._cali_flag == True else None, duration=1.5, volatuationData=0.06)
+    gestureObs.register_callback(GestureObserver.FuncNameLists.INCREASE, lambda: client.ServerProxy("http://127.0.0.1:9120/", allow_none=True).open(False) if gestureObs._cali_flag == True else None, duration=2.5, volatuationData=0.045)
+    gestureObs.register_callback(GestureObserver.FuncNameLists.REDUCE, lambda: client.ServerProxy("http://127.0.0.1:9120/", allow_none=True).adaptiveClose(False) if gestureObs._cali_flag == True else None, duration=2.5, volatuationData=0.045)
 
 
     # 比yeah开始,牛
